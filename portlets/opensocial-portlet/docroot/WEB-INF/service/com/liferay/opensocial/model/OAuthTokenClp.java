@@ -116,12 +116,12 @@ public class OAuthTokenClp extends BaseModelImpl<OAuthToken>
 		_modifiedDate = modifiedDate;
 	}
 
-	public String getGadgetKey() {
-		return _gadgetKey;
+	public long getModuleId() {
+		return _moduleId;
 	}
 
-	public void setGadgetKey(String gadgetKey) {
-		_gadgetKey = gadgetKey;
+	public void setModuleId(long moduleId) {
+		_moduleId = moduleId;
 	}
 
 	public String getServiceName() {
@@ -130,14 +130,6 @@ public class OAuthTokenClp extends BaseModelImpl<OAuthToken>
 
 	public void setServiceName(String serviceName) {
 		_serviceName = serviceName;
-	}
-
-	public long getModuleId() {
-		return _moduleId;
-	}
-
-	public void setModuleId(long moduleId) {
-		_moduleId = moduleId;
 	}
 
 	public String getAccessToken() {
@@ -205,9 +197,8 @@ public class OAuthTokenClp extends BaseModelImpl<OAuthToken>
 		clone.setUserName(getUserName());
 		clone.setCreateDate(getCreateDate());
 		clone.setModifiedDate(getModifiedDate());
-		clone.setGadgetKey(getGadgetKey());
-		clone.setServiceName(getServiceName());
 		clone.setModuleId(getModuleId());
+		clone.setServiceName(getServiceName());
 		clone.setAccessToken(getAccessToken());
 		clone.setTokenName(getTokenName());
 		clone.setTokenSecret(getTokenSecret());
@@ -263,7 +254,7 @@ public class OAuthTokenClp extends BaseModelImpl<OAuthToken>
 
 	@Override
 	public String toString() {
-		StringBundler sb = new StringBundler(29);
+		StringBundler sb = new StringBundler(27);
 
 		sb.append("{oAuthTokenId=");
 		sb.append(getOAuthTokenId());
@@ -277,12 +268,10 @@ public class OAuthTokenClp extends BaseModelImpl<OAuthToken>
 		sb.append(getCreateDate());
 		sb.append(", modifiedDate=");
 		sb.append(getModifiedDate());
-		sb.append(", gadgetKey=");
-		sb.append(getGadgetKey());
-		sb.append(", serviceName=");
-		sb.append(getServiceName());
 		sb.append(", moduleId=");
 		sb.append(getModuleId());
+		sb.append(", serviceName=");
+		sb.append(getServiceName());
 		sb.append(", accessToken=");
 		sb.append(getAccessToken());
 		sb.append(", tokenName=");
@@ -299,7 +288,7 @@ public class OAuthTokenClp extends BaseModelImpl<OAuthToken>
 	}
 
 	public String toXmlString() {
-		StringBundler sb = new StringBundler(46);
+		StringBundler sb = new StringBundler(43);
 
 		sb.append("<model><model-name>");
 		sb.append("com.liferay.opensocial.model.OAuthToken");
@@ -330,16 +319,12 @@ public class OAuthTokenClp extends BaseModelImpl<OAuthToken>
 		sb.append(getModifiedDate());
 		sb.append("]]></column-value></column>");
 		sb.append(
-			"<column><column-name>gadgetKey</column-name><column-value><![CDATA[");
-		sb.append(getGadgetKey());
+			"<column><column-name>moduleId</column-name><column-value><![CDATA[");
+		sb.append(getModuleId());
 		sb.append("]]></column-value></column>");
 		sb.append(
 			"<column><column-name>serviceName</column-name><column-value><![CDATA[");
 		sb.append(getServiceName());
-		sb.append("]]></column-value></column>");
-		sb.append(
-			"<column><column-name>moduleId</column-name><column-value><![CDATA[");
-		sb.append(getModuleId());
 		sb.append("]]></column-value></column>");
 		sb.append(
 			"<column><column-name>accessToken</column-name><column-value><![CDATA[");
@@ -374,9 +359,8 @@ public class OAuthTokenClp extends BaseModelImpl<OAuthToken>
 	private String _userName;
 	private Date _createDate;
 	private Date _modifiedDate;
-	private String _gadgetKey;
-	private String _serviceName;
 	private long _moduleId;
+	private String _serviceName;
 	private String _accessToken;
 	private String _tokenName;
 	private String _tokenSecret;

@@ -185,21 +185,21 @@ public class OAuthTokenWrapper implements OAuthToken, ModelWrapper<OAuthToken> {
 	}
 
 	/**
-	* Returns the gadget key of this o auth token.
+	* Returns the module ID of this o auth token.
 	*
-	* @return the gadget key of this o auth token
+	* @return the module ID of this o auth token
 	*/
-	public java.lang.String getGadgetKey() {
-		return _oAuthToken.getGadgetKey();
+	public long getModuleId() {
+		return _oAuthToken.getModuleId();
 	}
 
 	/**
-	* Sets the gadget key of this o auth token.
+	* Sets the module ID of this o auth token.
 	*
-	* @param gadgetKey the gadget key of this o auth token
+	* @param moduleId the module ID of this o auth token
 	*/
-	public void setGadgetKey(java.lang.String gadgetKey) {
-		_oAuthToken.setGadgetKey(gadgetKey);
+	public void setModuleId(long moduleId) {
+		_oAuthToken.setModuleId(moduleId);
 	}
 
 	/**
@@ -218,24 +218,6 @@ public class OAuthTokenWrapper implements OAuthToken, ModelWrapper<OAuthToken> {
 	*/
 	public void setServiceName(java.lang.String serviceName) {
 		_oAuthToken.setServiceName(serviceName);
-	}
-
-	/**
-	* Returns the module ID of this o auth token.
-	*
-	* @return the module ID of this o auth token
-	*/
-	public long getModuleId() {
-		return _oAuthToken.getModuleId();
-	}
-
-	/**
-	* Sets the module ID of this o auth token.
-	*
-	* @param moduleId the module ID of this o auth token
-	*/
-	public void setModuleId(long moduleId) {
-		_oAuthToken.setModuleId(moduleId);
 	}
 
 	/**

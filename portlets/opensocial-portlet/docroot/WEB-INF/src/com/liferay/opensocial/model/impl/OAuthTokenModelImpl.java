@@ -65,16 +65,15 @@ public class OAuthTokenModelImpl extends BaseModelImpl<OAuthToken>
 			{ "userName", Types.VARCHAR },
 			{ "createDate", Types.TIMESTAMP },
 			{ "modifiedDate", Types.TIMESTAMP },
-			{ "gadgetKey", Types.VARCHAR },
-			{ "serviceName", Types.VARCHAR },
 			{ "moduleId", Types.BIGINT },
+			{ "serviceName", Types.VARCHAR },
 			{ "accessToken", Types.VARCHAR },
 			{ "tokenName", Types.VARCHAR },
 			{ "tokenSecret", Types.VARCHAR },
 			{ "sessionHandle", Types.VARCHAR },
 			{ "expiration", Types.BIGINT }
 		};
-	public static final String TABLE_SQL_CREATE = "create table OpenSocial_OAuthToken (oAuthTokenId LONG not null primary key,companyId LONG,userId LONG,userName VARCHAR(75) null,createDate DATE null,modifiedDate DATE null,gadgetKey VARCHAR(75) null,serviceName VARCHAR(75) null,moduleId LONG,accessToken VARCHAR(75) null,tokenName VARCHAR(75) null,tokenSecret VARCHAR(75) null,sessionHandle VARCHAR(75) null,expiration LONG)";
+	public static final String TABLE_SQL_CREATE = "create table OpenSocial_OAuthToken (oAuthTokenId LONG not null primary key,companyId LONG,userId LONG,userName VARCHAR(75) null,createDate DATE null,modifiedDate DATE null,moduleId LONG,serviceName VARCHAR(75) null,accessToken VARCHAR(75) null,tokenName VARCHAR(75) null,tokenSecret VARCHAR(75) null,sessionHandle VARCHAR(75) null,expiration LONG)";
 	public static final String TABLE_SQL_DROP = "drop table OpenSocial_OAuthToken";
 	public static final String DATA_SOURCE = "liferayDataSource";
 	public static final String SESSION_FACTORY = "liferaySessionFactory";
@@ -88,11 +87,10 @@ public class OAuthTokenModelImpl extends BaseModelImpl<OAuthToken>
 	public static final boolean COLUMN_BITMASK_ENABLED = GetterUtil.getBoolean(com.liferay.util.service.ServiceProps.get(
 				"value.object.column.bitmask.enabled.com.liferay.opensocial.model.OAuthToken"),
 			true);
-	public static long GADGETKEY_COLUMN_BITMASK = 1L;
-	public static long MODULEID_COLUMN_BITMASK = 2L;
-	public static long SERVICENAME_COLUMN_BITMASK = 4L;
-	public static long TOKENNAME_COLUMN_BITMASK = 8L;
-	public static long USERID_COLUMN_BITMASK = 16L;
+	public static long MODULEID_COLUMN_BITMASK = 1L;
+	public static long SERVICENAME_COLUMN_BITMASK = 2L;
+	public static long TOKENNAME_COLUMN_BITMASK = 4L;
+	public static long USERID_COLUMN_BITMASK = 8L;
 	public static final long LOCK_EXPIRATION_TIME = GetterUtil.getLong(com.liferay.util.service.ServiceProps.get(
 				"lock.expiration.time.com.liferay.opensocial.model.OAuthToken"));
 
@@ -196,27 +194,24 @@ public class OAuthTokenModelImpl extends BaseModelImpl<OAuthToken>
 		_modifiedDate = modifiedDate;
 	}
 
-	public String getGadgetKey() {
-		if (_gadgetKey == null) {
-			return StringPool.BLANK;
-		}
-		else {
-			return _gadgetKey;
-		}
+	public long getModuleId() {
+		return _moduleId;
 	}
 
-	public void setGadgetKey(String gadgetKey) {
-		_columnBitmask |= GADGETKEY_COLUMN_BITMASK;
+	public void setModuleId(long moduleId) {
+		_columnBitmask |= MODULEID_COLUMN_BITMASK;
 
-		if (_originalGadgetKey == null) {
-			_originalGadgetKey = _gadgetKey;
+		if (!_setOriginalModuleId) {
+			_setOriginalModuleId = true;
+
+			_originalModuleId = _moduleId;
 		}
 
-		_gadgetKey = gadgetKey;
+		_moduleId = moduleId;
 	}
 
-	public String getOriginalGadgetKey() {
-		return GetterUtil.getString(_originalGadgetKey);
+	public long getOriginalModuleId() {
+		return _originalModuleId;
 	}
 
 	public String getServiceName() {
@@ -240,26 +235,6 @@ public class OAuthTokenModelImpl extends BaseModelImpl<OAuthToken>
 
 	public String getOriginalServiceName() {
 		return GetterUtil.getString(_originalServiceName);
-	}
-
-	public long getModuleId() {
-		return _moduleId;
-	}
-
-	public void setModuleId(long moduleId) {
-		_columnBitmask |= MODULEID_COLUMN_BITMASK;
-
-		if (!_setOriginalModuleId) {
-			_setOriginalModuleId = true;
-
-			_originalModuleId = _moduleId;
-		}
-
-		_moduleId = moduleId;
-	}
-
-	public long getOriginalModuleId() {
-		return _originalModuleId;
 	}
 
 	public String getAccessToken() {
@@ -372,9 +347,8 @@ public class OAuthTokenModelImpl extends BaseModelImpl<OAuthToken>
 		oAuthTokenImpl.setUserName(getUserName());
 		oAuthTokenImpl.setCreateDate(getCreateDate());
 		oAuthTokenImpl.setModifiedDate(getModifiedDate());
-		oAuthTokenImpl.setGadgetKey(getGadgetKey());
-		oAuthTokenImpl.setServiceName(getServiceName());
 		oAuthTokenImpl.setModuleId(getModuleId());
+		oAuthTokenImpl.setServiceName(getServiceName());
 		oAuthTokenImpl.setAccessToken(getAccessToken());
 		oAuthTokenImpl.setTokenName(getTokenName());
 		oAuthTokenImpl.setTokenSecret(getTokenSecret());
@@ -438,13 +412,11 @@ public class OAuthTokenModelImpl extends BaseModelImpl<OAuthToken>
 
 		oAuthTokenModelImpl._setOriginalUserId = false;
 
-		oAuthTokenModelImpl._originalGadgetKey = oAuthTokenModelImpl._gadgetKey;
-
-		oAuthTokenModelImpl._originalServiceName = oAuthTokenModelImpl._serviceName;
-
 		oAuthTokenModelImpl._originalModuleId = oAuthTokenModelImpl._moduleId;
 
 		oAuthTokenModelImpl._setOriginalModuleId = false;
+
+		oAuthTokenModelImpl._originalServiceName = oAuthTokenModelImpl._serviceName;
 
 		oAuthTokenModelImpl._originalTokenName = oAuthTokenModelImpl._tokenName;
 
@@ -487,13 +459,7 @@ public class OAuthTokenModelImpl extends BaseModelImpl<OAuthToken>
 			oAuthTokenCacheModel.modifiedDate = Long.MIN_VALUE;
 		}
 
-		oAuthTokenCacheModel.gadgetKey = getGadgetKey();
-
-		String gadgetKey = oAuthTokenCacheModel.gadgetKey;
-
-		if ((gadgetKey != null) && (gadgetKey.length() == 0)) {
-			oAuthTokenCacheModel.gadgetKey = null;
-		}
+		oAuthTokenCacheModel.moduleId = getModuleId();
 
 		oAuthTokenCacheModel.serviceName = getServiceName();
 
@@ -502,8 +468,6 @@ public class OAuthTokenModelImpl extends BaseModelImpl<OAuthToken>
 		if ((serviceName != null) && (serviceName.length() == 0)) {
 			oAuthTokenCacheModel.serviceName = null;
 		}
-
-		oAuthTokenCacheModel.moduleId = getModuleId();
 
 		oAuthTokenCacheModel.accessToken = getAccessToken();
 
@@ -544,7 +508,7 @@ public class OAuthTokenModelImpl extends BaseModelImpl<OAuthToken>
 
 	@Override
 	public String toString() {
-		StringBundler sb = new StringBundler(29);
+		StringBundler sb = new StringBundler(27);
 
 		sb.append("{oAuthTokenId=");
 		sb.append(getOAuthTokenId());
@@ -558,12 +522,10 @@ public class OAuthTokenModelImpl extends BaseModelImpl<OAuthToken>
 		sb.append(getCreateDate());
 		sb.append(", modifiedDate=");
 		sb.append(getModifiedDate());
-		sb.append(", gadgetKey=");
-		sb.append(getGadgetKey());
-		sb.append(", serviceName=");
-		sb.append(getServiceName());
 		sb.append(", moduleId=");
 		sb.append(getModuleId());
+		sb.append(", serviceName=");
+		sb.append(getServiceName());
 		sb.append(", accessToken=");
 		sb.append(getAccessToken());
 		sb.append(", tokenName=");
@@ -580,7 +542,7 @@ public class OAuthTokenModelImpl extends BaseModelImpl<OAuthToken>
 	}
 
 	public String toXmlString() {
-		StringBundler sb = new StringBundler(46);
+		StringBundler sb = new StringBundler(43);
 
 		sb.append("<model><model-name>");
 		sb.append("com.liferay.opensocial.model.OAuthToken");
@@ -611,16 +573,12 @@ public class OAuthTokenModelImpl extends BaseModelImpl<OAuthToken>
 		sb.append(getModifiedDate());
 		sb.append("]]></column-value></column>");
 		sb.append(
-			"<column><column-name>gadgetKey</column-name><column-value><![CDATA[");
-		sb.append(getGadgetKey());
+			"<column><column-name>moduleId</column-name><column-value><![CDATA[");
+		sb.append(getModuleId());
 		sb.append("]]></column-value></column>");
 		sb.append(
 			"<column><column-name>serviceName</column-name><column-value><![CDATA[");
 		sb.append(getServiceName());
-		sb.append("]]></column-value></column>");
-		sb.append(
-			"<column><column-name>moduleId</column-name><column-value><![CDATA[");
-		sb.append(getModuleId());
 		sb.append("]]></column-value></column>");
 		sb.append(
 			"<column><column-name>accessToken</column-name><column-value><![CDATA[");
@@ -661,13 +619,11 @@ public class OAuthTokenModelImpl extends BaseModelImpl<OAuthToken>
 	private String _userName;
 	private Date _createDate;
 	private Date _modifiedDate;
-	private String _gadgetKey;
-	private String _originalGadgetKey;
-	private String _serviceName;
-	private String _originalServiceName;
 	private long _moduleId;
 	private long _originalModuleId;
 	private boolean _setOriginalModuleId;
+	private String _serviceName;
+	private String _originalServiceName;
 	private String _accessToken;
 	private String _tokenName;
 	private String _originalTokenName;

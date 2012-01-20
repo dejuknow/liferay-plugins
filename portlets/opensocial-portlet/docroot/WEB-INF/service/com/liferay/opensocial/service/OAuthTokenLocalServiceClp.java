@@ -87,29 +87,28 @@ public class OAuthTokenLocalServiceClp implements OAuthTokenLocalService {
 				"setBeanIdentifier", java.lang.String.class);
 
 		_addOAuthTokenMethodKey17 = new MethodKey(_classLoaderProxy.getClassName(),
-				"addOAuthToken", long.class, java.lang.String.class,
-				java.lang.String.class, long.class, java.lang.String.class,
+				"addOAuthToken", long.class, long.class,
+				java.lang.String.class, java.lang.String.class,
 				java.lang.String.class, java.lang.String.class,
 				java.lang.String.class, long.class);
 
 		_deleteOAuthTokenMethodKey18 = new MethodKey(_classLoaderProxy.getClassName(),
-				"deleteOAuthToken", long.class, java.lang.String.class,
-				java.lang.String.class, long.class, java.lang.String.class);
+				"deleteOAuthToken", long.class, long.class,
+				java.lang.String.class, java.lang.String.class);
 
 		_deleteOAuthTokensMethodKey19 = new MethodKey(_classLoaderProxy.getClassName(),
-				"deleteOAuthTokens", java.lang.String.class,
-				java.lang.String.class);
+				"deleteOAuthTokens", long.class, java.lang.String.class);
 
 		_fetchOAuthTokenMethodKey20 = new MethodKey(_classLoaderProxy.getClassName(),
-				"fetchOAuthToken", long.class, java.lang.String.class,
-				java.lang.String.class, long.class, java.lang.String.class);
+				"fetchOAuthToken", long.class, long.class,
+				java.lang.String.class, java.lang.String.class);
 
 		_getOAuthTokenMethodKey21 = new MethodKey(_classLoaderProxy.getClassName(),
-				"getOAuthToken", long.class, java.lang.String.class,
-				java.lang.String.class, long.class, java.lang.String.class);
+				"getOAuthToken", long.class, long.class,
+				java.lang.String.class, java.lang.String.class);
 
 		_getOAuthTokensMethodKey22 = new MethodKey(_classLoaderProxy.getClassName(),
-				"getOAuthTokens", java.lang.String.class, java.lang.String.class);
+				"getOAuthTokens", long.class, java.lang.String.class);
 	}
 
 	public com.liferay.opensocial.model.OAuthToken addOAuthToken(
@@ -577,17 +576,16 @@ public class OAuthTokenLocalServiceClp implements OAuthTokenLocalService {
 	}
 
 	public com.liferay.opensocial.model.OAuthToken addOAuthToken(long userId,
-		java.lang.String gadgetKey, java.lang.String serviceName,
-		long moduleId, java.lang.String accessToken,
-		java.lang.String tokenName, java.lang.String tokenSecret,
-		java.lang.String sessionHandle, long expiration)
+		long moduleId, java.lang.String serviceName,
+		java.lang.String accessToken, java.lang.String tokenName,
+		java.lang.String tokenSecret, java.lang.String sessionHandle,
+		long expiration)
 		throws com.liferay.portal.kernel.exception.PortalException,
 			com.liferay.portal.kernel.exception.SystemException {
 		Object returnObj = null;
 
 		MethodHandler methodHandler = new MethodHandler(_addOAuthTokenMethodKey17,
-				userId, ClpSerializer.translateInput(gadgetKey),
-				ClpSerializer.translateInput(serviceName), moduleId,
+				userId, moduleId, ClpSerializer.translateInput(serviceName),
 				ClpSerializer.translateInput(accessToken),
 				ClpSerializer.translateInput(tokenName),
 				ClpSerializer.translateInput(tokenSecret),
@@ -617,13 +615,12 @@ public class OAuthTokenLocalServiceClp implements OAuthTokenLocalService {
 		return (com.liferay.opensocial.model.OAuthToken)ClpSerializer.translateOutput(returnObj);
 	}
 
-	public void deleteOAuthToken(long userId, java.lang.String gadgetKey,
-		java.lang.String serviceName, long moduleId, java.lang.String tokenName)
+	public void deleteOAuthToken(long userId, long moduleId,
+		java.lang.String serviceName, java.lang.String tokenName)
 		throws com.liferay.portal.kernel.exception.PortalException,
 			com.liferay.portal.kernel.exception.SystemException {
 		MethodHandler methodHandler = new MethodHandler(_deleteOAuthTokenMethodKey18,
-				userId, ClpSerializer.translateInput(gadgetKey),
-				ClpSerializer.translateInput(serviceName), moduleId,
+				userId, moduleId, ClpSerializer.translateInput(serviceName),
 				ClpSerializer.translateInput(tokenName));
 
 		try {
@@ -648,12 +645,10 @@ public class OAuthTokenLocalServiceClp implements OAuthTokenLocalService {
 		}
 	}
 
-	public void deleteOAuthTokens(java.lang.String gadgetKey,
-		java.lang.String serviceName)
+	public void deleteOAuthTokens(long moduleId, java.lang.String serviceName)
 		throws com.liferay.portal.kernel.exception.SystemException {
 		MethodHandler methodHandler = new MethodHandler(_deleteOAuthTokensMethodKey19,
-				ClpSerializer.translateInput(gadgetKey),
-				ClpSerializer.translateInput(serviceName));
+				moduleId, ClpSerializer.translateInput(serviceName));
 
 		try {
 			_classLoaderProxy.invoke(methodHandler);
@@ -674,14 +669,13 @@ public class OAuthTokenLocalServiceClp implements OAuthTokenLocalService {
 	}
 
 	public com.liferay.opensocial.model.OAuthToken fetchOAuthToken(
-		long userId, java.lang.String gadgetKey, java.lang.String serviceName,
-		long moduleId, java.lang.String tokenName)
+		long userId, long moduleId, java.lang.String serviceName,
+		java.lang.String tokenName)
 		throws com.liferay.portal.kernel.exception.SystemException {
 		Object returnObj = null;
 
 		MethodHandler methodHandler = new MethodHandler(_fetchOAuthTokenMethodKey20,
-				userId, ClpSerializer.translateInput(gadgetKey),
-				ClpSerializer.translateInput(serviceName), moduleId,
+				userId, moduleId, ClpSerializer.translateInput(serviceName),
 				ClpSerializer.translateInput(tokenName));
 
 		try {
@@ -705,15 +699,13 @@ public class OAuthTokenLocalServiceClp implements OAuthTokenLocalService {
 	}
 
 	public com.liferay.opensocial.model.OAuthToken getOAuthToken(long userId,
-		java.lang.String gadgetKey, java.lang.String serviceName,
-		long moduleId, java.lang.String tokenName)
+		long moduleId, java.lang.String serviceName, java.lang.String tokenName)
 		throws com.liferay.portal.kernel.exception.PortalException,
 			com.liferay.portal.kernel.exception.SystemException {
 		Object returnObj = null;
 
 		MethodHandler methodHandler = new MethodHandler(_getOAuthTokenMethodKey21,
-				userId, ClpSerializer.translateInput(gadgetKey),
-				ClpSerializer.translateInput(serviceName), moduleId,
+				userId, moduleId, ClpSerializer.translateInput(serviceName),
 				ClpSerializer.translateInput(tokenName));
 
 		try {
@@ -741,13 +733,12 @@ public class OAuthTokenLocalServiceClp implements OAuthTokenLocalService {
 	}
 
 	public java.util.List<com.liferay.opensocial.model.OAuthToken> getOAuthTokens(
-		java.lang.String gadgetKey, java.lang.String serviceName)
+		long moduleId, java.lang.String serviceName)
 		throws com.liferay.portal.kernel.exception.SystemException {
 		Object returnObj = null;
 
 		MethodHandler methodHandler = new MethodHandler(_getOAuthTokensMethodKey22,
-				ClpSerializer.translateInput(gadgetKey),
-				ClpSerializer.translateInput(serviceName));
+				moduleId, ClpSerializer.translateInput(serviceName));
 
 		try {
 			returnObj = _classLoaderProxy.invoke(methodHandler);

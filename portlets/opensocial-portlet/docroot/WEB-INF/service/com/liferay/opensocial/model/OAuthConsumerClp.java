@@ -91,12 +91,12 @@ public class OAuthConsumerClp extends BaseModelImpl<OAuthConsumer>
 		_modifiedDate = modifiedDate;
 	}
 
-	public String getGadgetKey() {
-		return _gadgetKey;
+	public long getModuleId() {
+		return _moduleId;
 	}
 
-	public void setGadgetKey(String gadgetKey) {
-		_gadgetKey = gadgetKey;
+	public void setModuleId(long moduleId) {
+		_moduleId = moduleId;
 	}
 
 	public String getServiceName() {
@@ -162,7 +162,7 @@ public class OAuthConsumerClp extends BaseModelImpl<OAuthConsumer>
 		clone.setCompanyId(getCompanyId());
 		clone.setCreateDate(getCreateDate());
 		clone.setModifiedDate(getModifiedDate());
-		clone.setGadgetKey(getGadgetKey());
+		clone.setModuleId(getModuleId());
 		clone.setServiceName(getServiceName());
 		clone.setConsumerKey(getConsumerKey());
 		clone.setConsumerSecret(getConsumerSecret());
@@ -225,8 +225,8 @@ public class OAuthConsumerClp extends BaseModelImpl<OAuthConsumer>
 		sb.append(getCreateDate());
 		sb.append(", modifiedDate=");
 		sb.append(getModifiedDate());
-		sb.append(", gadgetKey=");
-		sb.append(getGadgetKey());
+		sb.append(", moduleId=");
+		sb.append(getModuleId());
 		sb.append(", serviceName=");
 		sb.append(getServiceName());
 		sb.append(", consumerKey=");
@@ -264,8 +264,8 @@ public class OAuthConsumerClp extends BaseModelImpl<OAuthConsumer>
 		sb.append(getModifiedDate());
 		sb.append("]]></column-value></column>");
 		sb.append(
-			"<column><column-name>gadgetKey</column-name><column-value><![CDATA[");
-		sb.append(getGadgetKey());
+			"<column><column-name>moduleId</column-name><column-value><![CDATA[");
+		sb.append(getModuleId());
 		sb.append("]]></column-value></column>");
 		sb.append(
 			"<column><column-name>serviceName</column-name><column-value><![CDATA[");
@@ -293,7 +293,7 @@ public class OAuthConsumerClp extends BaseModelImpl<OAuthConsumer>
 	private long _companyId;
 	private Date _createDate;
 	private Date _modifiedDate;
-	private String _gadgetKey;
+	private long _moduleId;
 	private String _serviceName;
 	private String _consumerKey;
 	private String _consumerSecret;

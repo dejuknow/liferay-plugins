@@ -130,21 +130,21 @@ public class OAuthConsumerWrapper implements OAuthConsumer,
 	}
 
 	/**
-	* Returns the gadget key of this o auth consumer.
+	* Returns the module ID of this o auth consumer.
 	*
-	* @return the gadget key of this o auth consumer
+	* @return the module ID of this o auth consumer
 	*/
-	public java.lang.String getGadgetKey() {
-		return _oAuthConsumer.getGadgetKey();
+	public long getModuleId() {
+		return _oAuthConsumer.getModuleId();
 	}
 
 	/**
-	* Sets the gadget key of this o auth consumer.
+	* Sets the module ID of this o auth consumer.
 	*
-	* @param gadgetKey the gadget key of this o auth consumer
+	* @param moduleId the module ID of this o auth consumer
 	*/
-	public void setGadgetKey(java.lang.String gadgetKey) {
-		_oAuthConsumer.setGadgetKey(gadgetKey);
+	public void setModuleId(long moduleId) {
+		_oAuthConsumer.setModuleId(moduleId);
 	}
 
 	/**

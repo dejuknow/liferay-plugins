@@ -162,19 +162,18 @@ public interface OAuthTokenModel extends AuditedModel, BaseModel<OAuthToken> {
 	public void setModifiedDate(Date modifiedDate);
 
 	/**
-	 * Returns the gadget key of this o auth token.
+	 * Returns the module ID of this o auth token.
 	 *
-	 * @return the gadget key of this o auth token
+	 * @return the module ID of this o auth token
 	 */
-	@AutoEscape
-	public String getGadgetKey();
+	public long getModuleId();
 
 	/**
-	 * Sets the gadget key of this o auth token.
+	 * Sets the module ID of this o auth token.
 	 *
-	 * @param gadgetKey the gadget key of this o auth token
+	 * @param moduleId the module ID of this o auth token
 	 */
-	public void setGadgetKey(String gadgetKey);
+	public void setModuleId(long moduleId);
 
 	/**
 	 * Returns the service name of this o auth token.
@@ -190,20 +189,6 @@ public interface OAuthTokenModel extends AuditedModel, BaseModel<OAuthToken> {
 	 * @param serviceName the service name of this o auth token
 	 */
 	public void setServiceName(String serviceName);
-
-	/**
-	 * Returns the module ID of this o auth token.
-	 *
-	 * @return the module ID of this o auth token
-	 */
-	public long getModuleId();
-
-	/**
-	 * Sets the module ID of this o auth token.
-	 *
-	 * @param moduleId the module ID of this o auth token
-	 */
-	public void setModuleId(long moduleId);
 
 	/**
 	 * Returns the access token of this o auth token.

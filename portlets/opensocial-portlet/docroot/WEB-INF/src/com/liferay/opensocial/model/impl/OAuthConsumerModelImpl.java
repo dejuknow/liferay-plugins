@@ -61,13 +61,13 @@ public class OAuthConsumerModelImpl extends BaseModelImpl<OAuthConsumer>
 			{ "companyId", Types.BIGINT },
 			{ "createDate", Types.TIMESTAMP },
 			{ "modifiedDate", Types.TIMESTAMP },
-			{ "gadgetKey", Types.VARCHAR },
+			{ "moduleId", Types.BIGINT },
 			{ "serviceName", Types.VARCHAR },
 			{ "consumerKey", Types.VARCHAR },
 			{ "consumerSecret", Types.CLOB },
 			{ "keyType", Types.VARCHAR }
 		};
-	public static final String TABLE_SQL_CREATE = "create table OpenSocial_OAuthConsumer (oAuthConsumerId LONG not null primary key,companyId LONG,createDate DATE null,modifiedDate DATE null,gadgetKey VARCHAR(75) null,serviceName VARCHAR(75) null,consumerKey VARCHAR(75) null,consumerSecret TEXT null,keyType VARCHAR(75) null)";
+	public static final String TABLE_SQL_CREATE = "create table OpenSocial_OAuthConsumer (oAuthConsumerId LONG not null primary key,companyId LONG,createDate DATE null,modifiedDate DATE null,moduleId LONG,serviceName VARCHAR(75) null,consumerKey VARCHAR(75) null,consumerSecret TEXT null,keyType VARCHAR(75) null)";
 	public static final String TABLE_SQL_DROP = "drop table OpenSocial_OAuthConsumer";
 	public static final String ORDER_BY_JPQL = " ORDER BY oAuthConsumer.serviceName ASC";
 	public static final String ORDER_BY_SQL = " ORDER BY OpenSocial_OAuthConsumer.serviceName ASC";
@@ -83,7 +83,7 @@ public class OAuthConsumerModelImpl extends BaseModelImpl<OAuthConsumer>
 	public static final boolean COLUMN_BITMASK_ENABLED = GetterUtil.getBoolean(com.liferay.util.service.ServiceProps.get(
 				"value.object.column.bitmask.enabled.com.liferay.opensocial.model.OAuthConsumer"),
 			true);
-	public static long GADGETKEY_COLUMN_BITMASK = 1L;
+	public static long MODULEID_COLUMN_BITMASK = 1L;
 	public static long SERVICENAME_COLUMN_BITMASK = 2L;
 	public static final long LOCK_EXPIRATION_TIME = GetterUtil.getLong(com.liferay.util.service.ServiceProps.get(
 				"lock.expiration.time.com.liferay.opensocial.model.OAuthConsumer"));
@@ -147,27 +147,24 @@ public class OAuthConsumerModelImpl extends BaseModelImpl<OAuthConsumer>
 		_modifiedDate = modifiedDate;
 	}
 
-	public String getGadgetKey() {
-		if (_gadgetKey == null) {
-			return StringPool.BLANK;
-		}
-		else {
-			return _gadgetKey;
-		}
+	public long getModuleId() {
+		return _moduleId;
 	}
 
-	public void setGadgetKey(String gadgetKey) {
-		_columnBitmask |= GADGETKEY_COLUMN_BITMASK;
+	public void setModuleId(long moduleId) {
+		_columnBitmask |= MODULEID_COLUMN_BITMASK;
 
-		if (_originalGadgetKey == null) {
-			_originalGadgetKey = _gadgetKey;
+		if (!_setOriginalModuleId) {
+			_setOriginalModuleId = true;
+
+			_originalModuleId = _moduleId;
 		}
 
-		_gadgetKey = gadgetKey;
+		_moduleId = moduleId;
 	}
 
-	public String getOriginalGadgetKey() {
-		return GetterUtil.getString(_originalGadgetKey);
+	public long getOriginalModuleId() {
+		return _originalModuleId;
 	}
 
 	public String getServiceName() {
@@ -270,7 +267,7 @@ public class OAuthConsumerModelImpl extends BaseModelImpl<OAuthConsumer>
 		oAuthConsumerImpl.setCompanyId(getCompanyId());
 		oAuthConsumerImpl.setCreateDate(getCreateDate());
 		oAuthConsumerImpl.setModifiedDate(getModifiedDate());
-		oAuthConsumerImpl.setGadgetKey(getGadgetKey());
+		oAuthConsumerImpl.setModuleId(getModuleId());
 		oAuthConsumerImpl.setServiceName(getServiceName());
 		oAuthConsumerImpl.setConsumerKey(getConsumerKey());
 		oAuthConsumerImpl.setConsumerSecret(getConsumerSecret());
@@ -327,7 +324,9 @@ public class OAuthConsumerModelImpl extends BaseModelImpl<OAuthConsumer>
 	public void resetOriginalValues() {
 		OAuthConsumerModelImpl oAuthConsumerModelImpl = this;
 
-		oAuthConsumerModelImpl._originalGadgetKey = oAuthConsumerModelImpl._gadgetKey;
+		oAuthConsumerModelImpl._originalModuleId = oAuthConsumerModelImpl._moduleId;
+
+		oAuthConsumerModelImpl._setOriginalModuleId = false;
 
 		oAuthConsumerModelImpl._originalServiceName = oAuthConsumerModelImpl._serviceName;
 
@@ -360,13 +359,7 @@ public class OAuthConsumerModelImpl extends BaseModelImpl<OAuthConsumer>
 			oAuthConsumerCacheModel.modifiedDate = Long.MIN_VALUE;
 		}
 
-		oAuthConsumerCacheModel.gadgetKey = getGadgetKey();
-
-		String gadgetKey = oAuthConsumerCacheModel.gadgetKey;
-
-		if ((gadgetKey != null) && (gadgetKey.length() == 0)) {
-			oAuthConsumerCacheModel.gadgetKey = null;
-		}
+		oAuthConsumerCacheModel.moduleId = getModuleId();
 
 		oAuthConsumerCacheModel.serviceName = getServiceName();
 
@@ -415,8 +408,8 @@ public class OAuthConsumerModelImpl extends BaseModelImpl<OAuthConsumer>
 		sb.append(getCreateDate());
 		sb.append(", modifiedDate=");
 		sb.append(getModifiedDate());
-		sb.append(", gadgetKey=");
-		sb.append(getGadgetKey());
+		sb.append(", moduleId=");
+		sb.append(getModuleId());
 		sb.append(", serviceName=");
 		sb.append(getServiceName());
 		sb.append(", consumerKey=");
@@ -454,8 +447,8 @@ public class OAuthConsumerModelImpl extends BaseModelImpl<OAuthConsumer>
 		sb.append(getModifiedDate());
 		sb.append("]]></column-value></column>");
 		sb.append(
-			"<column><column-name>gadgetKey</column-name><column-value><![CDATA[");
-		sb.append(getGadgetKey());
+			"<column><column-name>moduleId</column-name><column-value><![CDATA[");
+		sb.append(getModuleId());
 		sb.append("]]></column-value></column>");
 		sb.append(
 			"<column><column-name>serviceName</column-name><column-value><![CDATA[");
@@ -487,8 +480,9 @@ public class OAuthConsumerModelImpl extends BaseModelImpl<OAuthConsumer>
 	private long _companyId;
 	private Date _createDate;
 	private Date _modifiedDate;
-	private String _gadgetKey;
-	private String _originalGadgetKey;
+	private long _moduleId;
+	private long _originalModuleId;
+	private boolean _setOriginalModuleId;
 	private String _serviceName;
 	private String _originalServiceName;
 	private String _consumerKey;

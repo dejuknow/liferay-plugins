@@ -35,7 +35,7 @@ public class OAuthTokenCacheModel implements CacheModel<OAuthToken>,
 	Serializable {
 	@Override
 	public String toString() {
-		StringBundler sb = new StringBundler(29);
+		StringBundler sb = new StringBundler(27);
 
 		sb.append("{oAuthTokenId=");
 		sb.append(oAuthTokenId);
@@ -49,12 +49,10 @@ public class OAuthTokenCacheModel implements CacheModel<OAuthToken>,
 		sb.append(createDate);
 		sb.append(", modifiedDate=");
 		sb.append(modifiedDate);
-		sb.append(", gadgetKey=");
-		sb.append(gadgetKey);
-		sb.append(", serviceName=");
-		sb.append(serviceName);
 		sb.append(", moduleId=");
 		sb.append(moduleId);
+		sb.append(", serviceName=");
+		sb.append(serviceName);
 		sb.append(", accessToken=");
 		sb.append(accessToken);
 		sb.append(", tokenName=");
@@ -98,12 +96,7 @@ public class OAuthTokenCacheModel implements CacheModel<OAuthToken>,
 			oAuthTokenImpl.setModifiedDate(new Date(modifiedDate));
 		}
 
-		if (gadgetKey == null) {
-			oAuthTokenImpl.setGadgetKey(StringPool.BLANK);
-		}
-		else {
-			oAuthTokenImpl.setGadgetKey(gadgetKey);
-		}
+		oAuthTokenImpl.setModuleId(moduleId);
 
 		if (serviceName == null) {
 			oAuthTokenImpl.setServiceName(StringPool.BLANK);
@@ -111,8 +104,6 @@ public class OAuthTokenCacheModel implements CacheModel<OAuthToken>,
 		else {
 			oAuthTokenImpl.setServiceName(serviceName);
 		}
-
-		oAuthTokenImpl.setModuleId(moduleId);
 
 		if (accessToken == null) {
 			oAuthTokenImpl.setAccessToken(StringPool.BLANK);
@@ -155,9 +146,8 @@ public class OAuthTokenCacheModel implements CacheModel<OAuthToken>,
 	public String userName;
 	public long createDate;
 	public long modifiedDate;
-	public String gadgetKey;
-	public String serviceName;
 	public long moduleId;
+	public String serviceName;
 	public String accessToken;
 	public String tokenName;
 	public String tokenSecret;

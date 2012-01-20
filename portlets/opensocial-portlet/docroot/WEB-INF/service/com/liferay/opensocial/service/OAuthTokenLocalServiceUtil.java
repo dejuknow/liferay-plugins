@@ -262,56 +262,51 @@ public class OAuthTokenLocalServiceUtil {
 	}
 
 	public static com.liferay.opensocial.model.OAuthToken addOAuthToken(
-		long userId, java.lang.String gadgetKey, java.lang.String serviceName,
-		long moduleId, java.lang.String accessToken,
-		java.lang.String tokenName, java.lang.String tokenSecret,
-		java.lang.String sessionHandle, long expiration)
+		long userId, long moduleId, java.lang.String serviceName,
+		java.lang.String accessToken, java.lang.String tokenName,
+		java.lang.String tokenSecret, java.lang.String sessionHandle,
+		long expiration)
 		throws com.liferay.portal.kernel.exception.PortalException,
 			com.liferay.portal.kernel.exception.SystemException {
 		return getService()
-				   .addOAuthToken(userId, gadgetKey, serviceName, moduleId,
-			accessToken, tokenName, tokenSecret, sessionHandle, expiration);
+				   .addOAuthToken(userId, moduleId, serviceName, accessToken,
+			tokenName, tokenSecret, sessionHandle, expiration);
 	}
 
-	public static void deleteOAuthToken(long userId,
-		java.lang.String gadgetKey, java.lang.String serviceName,
-		long moduleId, java.lang.String tokenName)
+	public static void deleteOAuthToken(long userId, long moduleId,
+		java.lang.String serviceName, java.lang.String tokenName)
 		throws com.liferay.portal.kernel.exception.PortalException,
 			com.liferay.portal.kernel.exception.SystemException {
-		getService()
-			.deleteOAuthToken(userId, gadgetKey, serviceName, moduleId,
-			tokenName);
+		getService().deleteOAuthToken(userId, moduleId, serviceName, tokenName);
 	}
 
-	public static void deleteOAuthTokens(java.lang.String gadgetKey,
+	public static void deleteOAuthTokens(long moduleId,
 		java.lang.String serviceName)
 		throws com.liferay.portal.kernel.exception.SystemException {
-		getService().deleteOAuthTokens(gadgetKey, serviceName);
+		getService().deleteOAuthTokens(moduleId, serviceName);
 	}
 
 	public static com.liferay.opensocial.model.OAuthToken fetchOAuthToken(
-		long userId, java.lang.String gadgetKey, java.lang.String serviceName,
-		long moduleId, java.lang.String tokenName)
+		long userId, long moduleId, java.lang.String serviceName,
+		java.lang.String tokenName)
 		throws com.liferay.portal.kernel.exception.SystemException {
 		return getService()
-				   .fetchOAuthToken(userId, gadgetKey, serviceName, moduleId,
-			tokenName);
+				   .fetchOAuthToken(userId, moduleId, serviceName, tokenName);
 	}
 
 	public static com.liferay.opensocial.model.OAuthToken getOAuthToken(
-		long userId, java.lang.String gadgetKey, java.lang.String serviceName,
-		long moduleId, java.lang.String tokenName)
+		long userId, long moduleId, java.lang.String serviceName,
+		java.lang.String tokenName)
 		throws com.liferay.portal.kernel.exception.PortalException,
 			com.liferay.portal.kernel.exception.SystemException {
 		return getService()
-				   .getOAuthToken(userId, gadgetKey, serviceName, moduleId,
-			tokenName);
+				   .getOAuthToken(userId, moduleId, serviceName, tokenName);
 	}
 
 	public static java.util.List<com.liferay.opensocial.model.OAuthToken> getOAuthTokens(
-		java.lang.String gadgetKey, java.lang.String serviceName)
+		long moduleId, java.lang.String serviceName)
 		throws com.liferay.portal.kernel.exception.SystemException {
-		return getService().getOAuthTokens(gadgetKey, serviceName);
+		return getService().getOAuthTokens(moduleId, serviceName);
 	}
 
 	public static void clearService() {

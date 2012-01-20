@@ -419,8 +419,8 @@ public class EditorPortlet extends AdminPortlet {
 		String currentURL = PortalUtil.getCurrentURL(resourceRequest);
 
 		String secureToken = ShindigUtil.createSecurityToken(
-			ownerId, themeDisplay.getUserId(), fileEntryURL, portalURL,
-			fileEntryURL, moduleId, currentURL);
+			ownerId, themeDisplay.getUserId(), portalURL, fileEntryURL,
+			moduleId, currentURL);
 
 		jsonObject.put("secureToken", secureToken);
 

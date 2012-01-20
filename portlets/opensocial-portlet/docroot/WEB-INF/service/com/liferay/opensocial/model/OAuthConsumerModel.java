@@ -116,19 +116,18 @@ public interface OAuthConsumerModel extends BaseModel<OAuthConsumer> {
 	public void setModifiedDate(Date modifiedDate);
 
 	/**
-	 * Returns the gadget key of this o auth consumer.
+	 * Returns the module ID of this o auth consumer.
 	 *
-	 * @return the gadget key of this o auth consumer
+	 * @return the module ID of this o auth consumer
 	 */
-	@AutoEscape
-	public String getGadgetKey();
+	public long getModuleId();
 
 	/**
-	 * Sets the gadget key of this o auth consumer.
+	 * Sets the module ID of this o auth consumer.
 	 *
-	 * @param gadgetKey the gadget key of this o auth consumer
+	 * @param moduleId the module ID of this o auth consumer
 	 */
-	public void setGadgetKey(String gadgetKey);
+	public void setModuleId(long moduleId);
 
 	/**
 	 * Returns the service name of this o auth consumer.

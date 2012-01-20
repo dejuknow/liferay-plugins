@@ -45,8 +45,8 @@ public class OAuthConsumerCacheModel implements CacheModel<OAuthConsumer>,
 		sb.append(createDate);
 		sb.append(", modifiedDate=");
 		sb.append(modifiedDate);
-		sb.append(", gadgetKey=");
-		sb.append(gadgetKey);
+		sb.append(", moduleId=");
+		sb.append(moduleId);
 		sb.append(", serviceName=");
 		sb.append(serviceName);
 		sb.append(", consumerKey=");
@@ -80,12 +80,7 @@ public class OAuthConsumerCacheModel implements CacheModel<OAuthConsumer>,
 			oAuthConsumerImpl.setModifiedDate(new Date(modifiedDate));
 		}
 
-		if (gadgetKey == null) {
-			oAuthConsumerImpl.setGadgetKey(StringPool.BLANK);
-		}
-		else {
-			oAuthConsumerImpl.setGadgetKey(gadgetKey);
-		}
+		oAuthConsumerImpl.setModuleId(moduleId);
 
 		if (serviceName == null) {
 			oAuthConsumerImpl.setServiceName(StringPool.BLANK);
@@ -124,7 +119,7 @@ public class OAuthConsumerCacheModel implements CacheModel<OAuthConsumer>,
 	public long companyId;
 	public long createDate;
 	public long modifiedDate;
-	public String gadgetKey;
+	public long moduleId;
 	public String serviceName;
 	public String consumerKey;
 	public String consumerSecret;

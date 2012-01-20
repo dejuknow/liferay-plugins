@@ -257,50 +257,48 @@ public class OAuthConsumerLocalServiceWrapper
 	}
 
 	public com.liferay.opensocial.model.OAuthConsumer addOAuthConsumer(
-		long companyId, java.lang.String gadgetKey,
-		java.lang.String serviceName, java.lang.String consumerKey,
-		java.lang.String consumerSecret, java.lang.String keyType)
+		long companyId, long moduleId, java.lang.String serviceName,
+		java.lang.String consumerKey, java.lang.String consumerSecret,
+		java.lang.String keyType)
 		throws com.liferay.portal.kernel.exception.SystemException {
-		return _oAuthConsumerLocalService.addOAuthConsumer(companyId,
-			gadgetKey, serviceName, consumerKey, consumerSecret, keyType);
+		return _oAuthConsumerLocalService.addOAuthConsumer(companyId, moduleId,
+			serviceName, consumerKey, consumerSecret, keyType);
 	}
 
-	public void deleteOAuthConsumers(java.lang.String gadgetKey)
+	public void deleteOAuthConsumers(long moduleId)
 		throws com.liferay.portal.kernel.exception.SystemException {
-		_oAuthConsumerLocalService.deleteOAuthConsumers(gadgetKey);
+		_oAuthConsumerLocalService.deleteOAuthConsumers(moduleId);
 	}
 
 	public com.liferay.opensocial.model.OAuthConsumer fetchOAuthConsumer(
-		java.lang.String gadgetKey, java.lang.String serviceName)
+		long moduleId, java.lang.String serviceName)
 		throws com.liferay.portal.kernel.exception.SystemException {
-		return _oAuthConsumerLocalService.fetchOAuthConsumer(gadgetKey,
+		return _oAuthConsumerLocalService.fetchOAuthConsumer(moduleId,
 			serviceName);
 	}
 
 	public com.liferay.opensocial.model.OAuthConsumer getOAuthConsumer(
-		java.lang.String gadgetKey, java.lang.String serviceName)
+		long moduleId, java.lang.String serviceName)
 		throws com.liferay.portal.kernel.exception.PortalException,
 			com.liferay.portal.kernel.exception.SystemException {
-		return _oAuthConsumerLocalService.getOAuthConsumer(gadgetKey,
-			serviceName);
+		return _oAuthConsumerLocalService.getOAuthConsumer(moduleId, serviceName);
 	}
 
 	public java.util.List<com.liferay.opensocial.model.OAuthConsumer> getOAuthConsumers(
-		java.lang.String gadgetKey)
+		long moduleId)
 		throws com.liferay.portal.kernel.exception.SystemException {
-		return _oAuthConsumerLocalService.getOAuthConsumers(gadgetKey);
+		return _oAuthConsumerLocalService.getOAuthConsumers(moduleId);
 	}
 
 	public java.util.List<com.liferay.opensocial.model.OAuthConsumer> getOAuthConsumers(
-		java.lang.String gadgetKey, int start, int end)
+		long moduleId, int start, int end)
 		throws com.liferay.portal.kernel.exception.SystemException {
-		return _oAuthConsumerLocalService.getOAuthConsumers(gadgetKey, start,
-			end);
+		return _oAuthConsumerLocalService.getOAuthConsumers(moduleId, start, end);
 	}
 
-	public int getOAuthConsumersCount(java.lang.String gadgetKey)
+	public int getOAuthConsumersCount(long moduleId)
 		throws com.liferay.portal.kernel.exception.SystemException {
-		return _oAuthConsumerLocalService.getOAuthConsumersCount(gadgetKey);
+		return _oAuthConsumerLocalService.getOAuthConsumersCount(moduleId);
 	}
 
 	public com.liferay.opensocial.model.OAuthConsumer updateOAuthConsumer(
