@@ -20,7 +20,6 @@ import com.liferay.opensocial.GadgetURLException;
 import com.liferay.opensocial.NoSuchGadgetException;
 import com.liferay.opensocial.gadget.portlet.GadgetPortlet;
 import com.liferay.opensocial.model.Gadget;
-import com.liferay.opensocial.model.impl.GadgetConstants;
 import com.liferay.opensocial.service.ClpSerializer;
 import com.liferay.opensocial.service.base.GadgetLocalServiceBaseImpl;
 import com.liferay.opensocial.shindig.util.ShindigUtil;
@@ -117,10 +116,11 @@ public class GadgetLocalServiceImpl extends GadgetLocalServiceBaseImpl {
 
 		// OAuth consumer
 
-		String gadgetKey = GadgetConstants.toPublishedGadgetKey(
-			gadget.getGadgetId());
+		long gadgetId = gadget.getGadgetId();
 
-		oAuthConsumerLocalService.deleteOAuthConsumers(gadgetKey);
+		long moduleId = ShindigUtil.getModuleId(String.valueOf(gadgetId));
+
+		oAuthConsumerLocalService.deleteOAuthConsumers(moduleId);
 	}
 
 	@Override

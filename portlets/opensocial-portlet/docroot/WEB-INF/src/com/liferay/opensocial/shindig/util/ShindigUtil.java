@@ -83,8 +83,8 @@ public class ShindigUtil {
 	}
 
 	public static String createSecurityToken(
-			String ownerId, long viewerId, String appId, String domain,
-			String appUrl, long moduleId, String activeUrl)
+			String ownerId, long viewerId, String domain, String appUrl,
+			long moduleId, String activeUrl)
 		throws Exception {
 
 		String securityToken = StringPool.BLANK;
@@ -115,7 +115,7 @@ public class ShindigUtil {
 		}
 		else if (securityTokenType.equals("insecure")) {
 			BasicSecurityToken basicSecurityToken = new BasicSecurityToken(
-				ownerId, String.valueOf(viewerId), appId, domain, appUrl,
+				ownerId, String.valueOf(viewerId), appUrl, domain, appUrl,
 				String.valueOf(moduleId), ContainerConfig.DEFAULT_CONTAINER,
 				activeUrl, null);
 
@@ -285,8 +285,8 @@ public class ShindigUtil {
 		return _host.get();
 	}
 
-	public static long getModuleId(String namespace) {
-		return namespace.hashCode();
+	public static long getModuleId(String value) {
+		return value.hashCode();
 	}
 
 	public static Map<String, OAuthService> getOAuthServices(String url)
@@ -389,7 +389,7 @@ public class ShindigUtil {
 		long[] oAuthConsumerIds = ParamUtil.getLongValues(
 			actionRequest, "oAuthConsumerId");
 
-		String gadgetKey = ParamUtil.getString(actionRequest, "gadgetKey");
+		long moduleId = ParamUtil.getLong(actionRequest, "moduleId");
 		String[] serviceNames = ParamUtil.getParameterValues(
 			actionRequest, "serviceName");
 		String[] consumerKeys = ParamUtil.getParameterValues(
@@ -419,7 +419,7 @@ public class ShindigUtil {
 
 			if (oAuthConsumerIds[i] <= 0) {
 				OAuthConsumerLocalServiceUtil.addOAuthConsumer(
-					themeDisplay.getCompanyId(), gadgetKey, serviceNames[i],
+					themeDisplay.getCompanyId(), moduleId, serviceNames[i],
 					consumerKey, consumerSecret, keyTypes[i]);
 			}
 			else {

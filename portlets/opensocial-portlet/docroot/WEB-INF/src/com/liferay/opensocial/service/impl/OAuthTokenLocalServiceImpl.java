@@ -31,9 +31,9 @@ public class OAuthTokenLocalServiceImpl
 	extends OAuthTokenLocalServiceBaseImpl {
 
 	public OAuthToken addOAuthToken(
-			long userId, String gadgetKey, String serviceName, long moduleId,
-			String accessToken, String tokenName, String tokenSecret,
-			String sessionHandle, long expiration)
+			long userId, long moduleId, String serviceName, String accessToken,
+			String tokenName, String tokenSecret, String sessionHandle,
+			long expiration)
 		throws PortalException, SystemException {
 
 		User user = UserLocalServiceUtil.getUser(userId);
@@ -48,9 +48,8 @@ public class OAuthTokenLocalServiceImpl
 		oAuthToken.setUserName(user.getFullName());
 		oAuthToken.setCreateDate(now);
 		oAuthToken.setModifiedDate(now);
-		oAuthToken.setGadgetKey(gadgetKey);
-		oAuthToken.setServiceName(serviceName);
 		oAuthToken.setModuleId(moduleId);
+		oAuthToken.setServiceName(serviceName);
 		oAuthToken.setAccessToken(accessToken);
 		oAuthToken.setTokenName(tokenName);
 		oAuthToken.setTokenSecret(tokenSecret);
@@ -63,42 +62,39 @@ public class OAuthTokenLocalServiceImpl
 	}
 
 	public void deleteOAuthToken(
-			long userId, String gadgetKey, String serviceName, long moduleId,
-			String tokenName)
+			long userId, long moduleId, String serviceName, String tokenName)
 		throws PortalException, SystemException {
 
-		oAuthTokenPersistence.removeByU_G_S_M_T(
-			userId, gadgetKey, serviceName, moduleId, tokenName);
+		oAuthTokenPersistence.removeByU_M_S_T(
+			userId, moduleId, serviceName, tokenName);
 	}
 
-	public void deleteOAuthTokens(String gadgetKey, String serviceName)
+	public void deleteOAuthTokens(long moduleId, String serviceName)
 		throws SystemException {
 
-		oAuthTokenPersistence.removeByG_S(gadgetKey, serviceName);
+		oAuthTokenPersistence.removeByM_S(moduleId, serviceName);
 	}
 
 	public OAuthToken fetchOAuthToken(
-			long userId, String gadgetKey, String serviceName, long moduleId,
-			String tokenName)
+			long userId, long moduleId, String serviceName, String tokenName)
 		throws SystemException {
 
-		return oAuthTokenPersistence.fetchByU_G_S_M_T(
-			userId, gadgetKey, serviceName, moduleId, tokenName);
+		return oAuthTokenPersistence.fetchByU_M_S_T(
+			userId, moduleId, serviceName, tokenName);
 	}
 
 	public OAuthToken getOAuthToken(
-			long userId, String gadgetKey, String serviceName, long moduleId,
-			String tokenName)
+			long userId, long moduleId, String serviceName, String tokenName)
 		throws PortalException, SystemException {
 
-		return oAuthTokenPersistence.findByU_G_S_M_T(
-			userId, gadgetKey, serviceName, moduleId, tokenName);
+		return oAuthTokenPersistence.findByU_M_S_T(
+			userId, moduleId, serviceName, tokenName);
 	}
 
-	public List<OAuthToken> getOAuthTokens(String gadgetKey, String serviceName)
+	public List<OAuthToken> getOAuthTokens(long moduleId, String serviceName)
 		throws SystemException {
 
-		return oAuthTokenPersistence.findByG_S(gadgetKey, serviceName);
+		return oAuthTokenPersistence.findByM_S(moduleId, serviceName);
 	}
 
 }

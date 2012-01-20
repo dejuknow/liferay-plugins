@@ -21,14 +21,14 @@ String redirect = ParamUtil.getString(request, "redirect");
 
 long gadgetId = ParamUtil.getLong(request, "gadgetId");
 
-String gadgetKey = StringPool.BLANK;
-
 Gadget gadget = null;
+
+long moduleId = 0;
 
 if (gadgetId > 0) {
 	gadget = GadgetLocalServiceUtil.fetchGadget(gadgetId);
 
-	gadgetKey = GadgetConstants.toPublishedGadgetKey(gadgetId);
+	moduleId = ShindigUtil.getModuleId(String.valueOf(gadgetId));
 }
 else {
 	redirect = StringPool.BLANK;
@@ -41,9 +41,7 @@ else {
 
 	String namespace = ShindigUtil.getPortletResourceNamespace(renderRequest, themeDisplay);
 
-	long moduleId = ShindigUtil.getModuleId(namespace);
-
-	gadgetKey = GadgetConstants.toAdhocGadgetKey(moduleId);
+	moduleId = ShindigUtil.getModuleId(namespace);
 }
 
 Map<String, OAuthService> oAuthServices = null;
@@ -70,7 +68,7 @@ int oAuthServiceCount = 0;
 </portlet:actionURL>
 
 <aui:form action="<%= updateOAuthConsumersURL %>" method="post" name="fm" onSubmit='<%= "event.preventDefault(); " + renderResponse.getNamespace() + "saveOAuthConsumers();" %>'>
-	<aui:input name="gadgetKey" type="hidden" value="<%= gadgetKey %>" />
+	<aui:input name="moduleId" type="hidden" value="<%= moduleId %>" />
 
 	<%
 	for (Map.Entry<String, OAuthService> entry : oAuthServices.entrySet()) {
@@ -81,7 +79,7 @@ int oAuthServiceCount = 0;
 		OAuthConsumer oAuthConsumer = null;
 
 		try {
-			oAuthConsumer = OAuthConsumerLocalServiceUtil.getOAuthConsumer(gadgetKey, serviceName);
+			oAuthConsumer = OAuthConsumerLocalServiceUtil.getOAuthConsumer(moduleId, serviceName);
 		}
 		catch (NoSuchOAuthConsumerException nsce) {
 		}

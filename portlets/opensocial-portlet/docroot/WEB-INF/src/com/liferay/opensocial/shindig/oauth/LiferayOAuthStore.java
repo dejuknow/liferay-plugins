@@ -16,21 +16,15 @@ package com.liferay.opensocial.shindig.oauth;
 
 import com.google.inject.Singleton;
 
-import com.liferay.opensocial.model.Gadget;
 import com.liferay.opensocial.model.OAuthConsumer;
 import com.liferay.opensocial.model.OAuthConsumerConstants;
 import com.liferay.opensocial.model.OAuthToken;
-import com.liferay.opensocial.model.impl.GadgetConstants;
-import com.liferay.opensocial.service.GadgetLocalServiceUtil;
 import com.liferay.opensocial.service.OAuthConsumerLocalServiceUtil;
 import com.liferay.opensocial.service.OAuthTokenLocalServiceUtil;
 import com.liferay.opensocial.shindig.util.ShindigUtil;
 import com.liferay.opensocial.util.PortletPropsValues;
 import com.liferay.portal.kernel.exception.SystemException;
 import com.liferay.portal.kernel.util.GetterUtil;
-import com.liferay.portal.kernel.util.StringPool;
-import com.liferay.portal.model.User;
-import com.liferay.portal.service.UserLocalServiceUtil;
 
 import net.oauth.OAuth;
 import net.oauth.OAuthServiceProvider;
@@ -143,41 +137,9 @@ public class LiferayOAuthStore implements OAuthStore {
 
 		long userId = GetterUtil.getLong(securityToken.getViewerId());
 
-		User user = null;
-
-		try {
-			user = UserLocalServiceUtil.getUser(userId);
-		}
-		catch (Exception e) {
-			throw new GadgetException(
-				GadgetException.Code.INTERNAL_SERVER_ERROR, e);
-		}
-
-		Gadget gadget = null;
-
-		try {
-			gadget = GadgetLocalServiceUtil.fetchGadget(
-				user.getCompanyId(), securityToken.getAppUrl());
-		}
-		catch (SystemException se) {
-			throw new GadgetException(
-				GadgetException.Code.INTERNAL_SERVER_ERROR, se);
-		}
-
-		String gadgetKey = StringPool.BLANK;
-
-		if (gadget == null) {
-			gadgetKey = GadgetConstants.toAdhocGadgetKey(
-				securityToken.getModuleId());
-		}
-		else {
-			gadgetKey = GadgetConstants.toPublishedGadgetKey(
-				gadget.getGadgetId());
-		}
-
 		try {
 			OAuthTokenLocalServiceUtil.addOAuthToken(
-				userId, gadgetKey, serviceName, securityToken.getModuleId(),
+				userId, securityToken.getModuleId(), serviceName,
 				tokenInfo.getAccessToken(), tokenName,
 				tokenInfo.getTokenSecret(), tokenInfo.getSessionHandle(),
 				tokenInfo.getTokenExpireMillis());
@@ -196,7 +158,7 @@ public class LiferayOAuthStore implements OAuthStore {
 
 		try {
 			oAuthConsumer = OAuthConsumerLocalServiceUtil.fetchOAuthConsumer(
-				securityToken.getAppId(), serviceName);
+				securityToken.getModuleId(), serviceName);
 		}
 		catch (SystemException se) {
 			throw new GadgetException(
@@ -204,7 +166,7 @@ public class LiferayOAuthStore implements OAuthStore {
 		}
 
 		if (oAuthConsumer == null) {
-			return _oAuthConsumer;
+			return null;
 		}
 
 		if (oAuthConsumer.getKeyType().equals(
@@ -227,14 +189,13 @@ public class LiferayOAuthStore implements OAuthStore {
 			String tokenName)
 		throws GadgetException {
 
-		long userId = GetterUtil.getLong(securityToken.getViewerId());
-
 		OAuthToken oAuthToken = null;
+
+		long userId = GetterUtil.getLong(securityToken.getViewerId());
 
 		try {
 			oAuthToken = OAuthTokenLocalServiceUtil.fetchOAuthToken(
-				userId, securityToken.getAppId(), serviceName,
-				securityToken.getModuleId(), tokenName);
+				userId, securityToken.getModuleId(), serviceName, tokenName);
 		}
 		catch (SystemException se) {
 			throw new GadgetException(

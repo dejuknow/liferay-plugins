@@ -21,17 +21,16 @@ Gadget gadget = (Gadget)renderRequest.getAttribute(WebKeys.GADGET);
 String view = (String)renderRequest.getAttribute(WebKeys.VIEW);
 
 String ownerId = ShindigUtil.getOwnerId(layout);
-long moduleId = ShindigUtil.getModuleId(renderResponse.getNamespace());
 
 long gadgetId = gadget.getGadgetId();
 
-String gadgetKey = StringPool.BLANK;
+long moduleId = 0;
 
 if (gadgetId > 0) {
-	gadgetKey = GadgetConstants.toPublishedGadgetKey(gadgetId);
+	moduleId = ShindigUtil.getModuleId(String.valueOf(gadgetId));
 }
 else {
-	gadgetKey = GadgetConstants.toAdhocGadgetKey(moduleId);
+	moduleId = ShindigUtil.getModuleId(renderResponse.getNamespace());
 }
 
 GadgetSpec gadgetSpec = ShindigUtil.getGadgetSpec(gadget.getUrl());
@@ -42,7 +41,7 @@ Map<String, Feature> features = modulePrefs.getFeatures();
 
 boolean requiresPubsub = features.containsKey("pubsub-2");
 
-String secureToken = ShindigUtil.createSecurityToken(ownerId, themeDisplay.getUserId(), gadgetKey, PortalUtil.getPortalURL(themeDisplay), gadget.getUrl(), moduleId, currentURL);
+String secureToken = ShindigUtil.createSecurityToken(ownerId, themeDisplay.getUserId(), PortalUtil.getPortalURL(themeDisplay), gadget.getUrl(), moduleId, currentURL);
 %>
 
 <div class="gadgets-gadget-chrome" id="<portlet:namespace />gadget"></div>
