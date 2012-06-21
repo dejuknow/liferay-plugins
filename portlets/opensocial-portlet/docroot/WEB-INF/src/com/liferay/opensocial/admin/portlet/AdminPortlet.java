@@ -14,6 +14,13 @@
 
 package com.liferay.opensocial.admin.portlet;
 
+import java.io.InputStream;
+import java.util.List;
+
+import javax.portlet.ActionRequest;
+import javax.portlet.ActionResponse;
+
+import com.liferay.opensocial.GadgetURLException;
 import com.liferay.opensocial.model.Gadget;
 import com.liferay.opensocial.service.GadgetLocalServiceUtil;
 import com.liferay.opensocial.service.GadgetServiceUtil;
@@ -21,19 +28,24 @@ import com.liferay.opensocial.service.permission.GadgetPermission;
 import com.liferay.opensocial.shindig.util.ShindigUtil;
 import com.liferay.opensocial.util.ActionKeys;
 import com.liferay.portal.kernel.dao.orm.QueryUtil;
+import com.liferay.portal.kernel.repository.model.FileEntry;
+import com.liferay.portal.kernel.repository.model.Folder;
+import com.liferay.portal.kernel.upload.UploadPortletRequest;
 import com.liferay.portal.kernel.util.Constants;
 import com.liferay.portal.kernel.util.ParamUtil;
+import com.liferay.portal.kernel.util.StreamUtil;
+import com.liferay.portal.kernel.util.StringPool;
+import com.liferay.portal.kernel.util.StringUtil;
 import com.liferay.portal.kernel.util.WebKeys;
 import com.liferay.portal.security.permission.PermissionChecker;
 import com.liferay.portal.service.ServiceContext;
 import com.liferay.portal.service.ServiceContextFactory;
+import com.liferay.portal.service.UserLocalServiceUtil;
 import com.liferay.portal.theme.ThemeDisplay;
+import com.liferay.portal.util.PortalUtil;
+import com.liferay.portlet.documentlibrary.model.DLFileEntry;
+import com.liferay.portlet.documentlibrary.service.DLAppLocalServiceUtil;
 import com.liferay.util.bridges.mvc.MVCPortlet;
-
-import java.util.List;
-
-import javax.portlet.ActionRequest;
-import javax.portlet.ActionResponse;
 
 /**
  * @author Michael Young
@@ -80,13 +92,16 @@ public class AdminPortlet extends MVCPortlet {
 			ActionRequest actionRequest, ActionResponse actionResponse)
 		throws Exception {
 
-		String cmd = ParamUtil.getString(actionRequest, Constants.CMD);
+		UploadPortletRequest uploadPortletRequest =
+			PortalUtil.getUploadPortletRequest(actionRequest);
+			
+		String cmd = ParamUtil.getString(uploadPortletRequest, Constants.CMD);
 
 		if (cmd.equals(Constants.ADD)) {
-			doAddGadget(actionRequest, actionResponse);
+			doAddGadget(uploadPortletRequest, actionResponse);
 		}
 		else if (cmd.equals(Constants.UPDATE)) {
-			doUpdateGadget(actionRequest, actionResponse);
+			doUpdateGadget(uploadPortletRequest, actionResponse);
 		}
 	}
 
@@ -110,18 +125,68 @@ public class AdminPortlet extends MVCPortlet {
 	}
 
 	protected Gadget doAddGadget(
-			ActionRequest actionRequest, ActionResponse actionResponse)
+			UploadPortletRequest uploadPortletRequest, ActionResponse actionResponse)
 		throws Exception {
 
-		ThemeDisplay themeDisplay = (ThemeDisplay)actionRequest.getAttribute(
+		ThemeDisplay themeDisplay = (ThemeDisplay)uploadPortletRequest.getAttribute(
 			WebKeys.THEME_DISPLAY);
 
-		String url = ParamUtil.getString(actionRequest, "url");
+		String sourceFileName = uploadPortletRequest.getFileName("file");
+		
+		InputStream inputStream = null;
+
+		FileEntry fileEntry = null;
+
+		try {
+			String contentType = uploadPortletRequest.getContentType("file");
+
+			inputStream = uploadPortletRequest.getFileAsStream("file");
+			
+			String content = StringUtil.read(inputStream);
+			
+			if (!ShindigUtil.isContentValid(content)) {
+				throw new GadgetURLException();
+			}
+
+			ServiceContext serviceContext = ServiceContextFactory.getInstance(
+				DLFileEntry.class.getName(), uploadPortletRequest);
+
+			long companyId = themeDisplay.getCompanyId();
+			long repositoryId = themeDisplay.getScopeGroupId();
+			
+			Folder folder = ShindigUtil.getGadgetEditorRootFolder(
+				companyId, repositoryId);
+
+			long defaultUserId = UserLocalServiceUtil.getDefaultUserId(companyId);
+			
+			fileEntry = DLAppLocalServiceUtil.addFileEntry(
+				defaultUserId,
+				repositoryId, folder.getFolderId(), sourceFileName, contentType, sourceFileName,
+				StringPool.BLANK, StringPool.BLANK, content.getBytes(), serviceContext);
+		}
+		catch (Exception e) {
+			System.out.println(e);
+		}
+		finally {
+			StreamUtil.cleanUp(inputStream);
+		}
+
+		String url = StringPool.BLANK;
+		
+		if (fileEntry != null) {
+			String portalURL = PortalUtil.getPortalURL(themeDisplay);
+
+			url = ShindigUtil.getFileEntryURL(portalURL, fileEntry.getFileEntryId());
+		}
+		else {
+			url = ParamUtil.getString(uploadPortletRequest, "url");			
+		}
+		
 		String portletCategoryNames = ParamUtil.getString(
-			actionRequest, "portletCategoryNames");
+				uploadPortletRequest, "portletCategoryNames");
 
 		ServiceContext serviceContext = ServiceContextFactory.getInstance(
-			Gadget.class.getName(), actionRequest);
+			Gadget.class.getName(), uploadPortletRequest);
 
 		Gadget gadget = GadgetServiceUtil.addGadget(
 			themeDisplay.getCompanyId(), url, portletCategoryNames,
@@ -131,7 +196,7 @@ public class AdminPortlet extends MVCPortlet {
 	}
 
 	protected void doUpdateGadget(
-			ActionRequest actionRequest, ActionResponse actionResponse)
+			UploadPortletRequest actionRequest, ActionResponse actionResponse)
 		throws Exception {
 
 		long gadgetId = ParamUtil.getLong(actionRequest, "gadgetId");
