@@ -2,30 +2,19 @@ AUI.add(
 	'opensocial-editor',
 	function(A) {
 		var Lang = A.Lang;
+		var AArray = A.Array;
 
-		var ABSOLUTE = 'absolute';
-
-		var ACTIVE = 'active';
-
-		var ACTIVE_TAB = 'activeTab';
+		var ACE_EDITOR = 'aceEditor';
 
 		var BODY_CONTENT = 'bodyContent';
 
 		var BOUNDING_BOX = 'boundingBox';
-
-		var CODE_MIRROR = 'codeMirror';
-
-		var CONFIG_SPACER = {
-			type: 'ToolbarSpacer'
-		};
 
 		var CONTENT_BOX = 'contentBox';
 
 		var DISABLED = 'disabled';
 
 		var EDITABLE = 'editable';
-
-		var EDITOR = 'editor';
 
 		var ENTRY_ID = 'entryId';
 
@@ -57,8 +46,6 @@ AUI.add(
 
 		var GET_FOLDER_CHILDREN = 'getFolderChildren';
 
-		var HEIGHT = 'height';
-
 		var ID = 'id';
 
 		var INCREASE = 'increase';
@@ -69,8 +56,6 @@ AUI.add(
 
 		var IS_NEW_ENTRY = 'isNewEntry';
 
-		var IS_RENDERED = 'isRendered';
-
 		var LABEL = 'label';
 
 		var LAST_SELECTED = 'lastSelected';
@@ -79,17 +64,13 @@ AUI.add(
 
 		var NEW_FOLDER = 'New Folder';
 
-		var NUM_PERCENTAGE_HUNDRED = '100%';
-
 		var PARENT_NODE = 'parentNode';
-
-		var PROXY_EL = 'proxyEl';
 
 		var REPOSITORY_ID = 'repositoryId';
 
 		var ROOT_FOLDER_ID = 'rootFolderId';
 
-		var STR_T = 't';
+		var STR_EMPTY = '';
 
 		var TPL_EDITOR = '<div id="editorPortlet">' +
 			'<div id="gadgetEditorToolbar"></div>' +
@@ -99,10 +80,7 @@ AUI.add(
 					'<div id="treeViewEditor"></div>' +
 				'</div>' +
 				'<div class="main-editor-column" id="mainEditorColumn">' +
-					'<div class="main-editor-column-resize" id="mainEditorColumnResize">' +
-						'<div id="tabViewEditor"></div>' +
-						'<div class="preview-panel" id="previewPanel"></div>' +
-					'</div>' +
+					'<div id="tabViewEditor"></div>' +
 				'</div>' +
 			'</div>' +
 		'</div>';
@@ -117,15 +95,11 @@ AUI.add(
 
 		var UNTITLED_XML = UNTITLED + XML;
 
-		var WIDTH = 'width';
-
-		var WRAPPER = 'wrapper';
-
 		var VALUE = 'value';
 
 		var Editor = A.Component.create(
 			{
-				NAME: 'gadget-editor',
+				AUGMENTS: [Liferay.PortletBase],
 
 				ATTRS: {
 					baseRenderURL: {
@@ -140,16 +114,16 @@ AUI.add(
 					rootFolderId: {}
 				},
 
+				NAME: 'gadget-editor',
+
 				prototype: {
 					initializer: function() {
 						var instance = this;
 
-						A.StyleSheet.register(A.StyleSheet(), CODE_MIRROR);
-
 						instance._io = {};
 
 						instance._createEvents();
-						instance._createIndexDataSet();
+						instance._createIndexMap();
 					},
 
 					renderUI: function() {
@@ -165,11 +139,8 @@ AUI.add(
 
 						instance._renderLoadingMask();
 						instance._renderToolbar();
-						instance._renderEditorColumnResize();
-						instance._renderPreviewPanelResize();
 						instance._renderTreeViewEditor();
 						instance._renderTabViewEditor();
-						instance._renderPreviewPanel();
 					},
 
 					bindUI: function() {
@@ -192,7 +163,7 @@ AUI.add(
 
 						instance.on('editable-editor:save', instance._onEditableSave);
 
-						instance.after('tab-view-editor:activeTabChange', instance._afterTabViewActiveTabChange);
+						instance.after('tab-view-editor:selectionChange', instance._afterSelectionChange);
 
 						instance.after('tab-editor:add', instance._afterTabAdd);
 						instance.after('tab-editor:close', instance._afterTabClose);
@@ -212,52 +183,20 @@ AUI.add(
 						instance._tabViewEditor.addNewTab();
 
 						var tabViewEditorBoundingBox = instance._tabViewEditor.get(BOUNDING_BOX);
-
-						instance._tabViewEditor.setAttrs(
-							{
-								height: NUM_PERCENTAGE_HUNDRED,
-								width: instance._getEditorColumnResizeWidth()
-							}
-						);
-
-						tabViewEditorBoundingBox.setStyles(
-							{
-								position: ABSOLUTE,
-								top: 0
-							}
-						);
-
-						var previewResizeWrapper = instance._previewResize.get(WRAPPER);
-
-						previewResizeWrapper.setStyles(
-							{
-								bottom: 0,
-								height: 200,
-								position: ABSOLUTE,
-								width: instance._getEditorColumnResizeWidth()
-							}
-						);
-
-						previewResizeWrapper.hide();
-
-						instance._tabViewEditor.adjustEditorHeight();
 					},
 
-					_addEntryToDataSet: function(object) {
+					_addEntryToMap: function(object) {
 						var instance = this;
 
 						var entryId = object.get(ENTRY_ID);
 
-						if (entryId != '') {
-							var item;
+						if (entryId != STR_EMPTY) {
+							var item = {};
 
-							var containsKey = instance._indexDataSet.containsKey(entryId);
+							var containsKey = instance._indexMap.has(entryId);
 
 							if (containsKey) {
-								item = instance._indexDataSet.item(entryId);
-							}
-							else {
-								item = {};
+								item = instance._indexMap.getValue(entryId);
 							}
 
 							var addEntry = true;
@@ -273,7 +212,7 @@ AUI.add(
 							}
 
 							if (addEntry) {
-								instance._indexDataSet.add(entryId, item);
+								instance._indexMap.put(entryId, item);
 							}
 						}
 					},
@@ -321,25 +260,6 @@ AUI.add(
 						}
 					},
 
-					_adjustPreviewPanelContentHeight: function() {
-						var instance = this;
-
-						var previewResize = instance._previewResize;
-
-						var previewResizeWrapper = previewResize.get(WRAPPER);
-						var node = previewResize.get('node');
-
-						var previewHeight = previewResizeWrapper.height() - node.getPadding(STR_T);
-
-						var previewPanel = instance._previewPanel;
-
-						var previewPanelHeaderHeight = previewPanel.headerNode.get('offsetHeight');
-
-						var bodyNode = previewPanel.bodyNode;
-
-						bodyNode.height(previewHeight - previewPanelHeaderHeight - bodyNode.getPadding('tb'));
-					},
-
 					_afterEditableCancel: function(event) {
 						var instance = this;
 
@@ -369,47 +289,10 @@ AUI.add(
 							}
 						);
 
-						instance._publishGadgetDialog.close();
+						instance._publishGadgetDialog.destroy();
 					},
 
-					_afterTabAdd: function(event) {
-						var instance = this;
-
-						instance._addEntryToDataSet(event.target);
-					},
-
-					_afterTabClose: function(event) {
-						var instance = this;
-
-						instance.fire(
-							EVENT_CLOSE_FILE_ENTRY,
-							{
-								entryId: event.entryId
-							}
-						);
-					},
-
-					_afterTabEntryIdChange: function(event) {
-						var instance = this;
-
-						instance._removeEntryFromDataSet(event.prevVal);
-
-						instance._addEntryToDataSet(event.target);
-					},
-
-					_afterTabIsDirtyChange: function(event) {
-						var instance = this;
-
-						instance._saveButton.set(DISABLED, !event.newVal);
-					},
-
-					_afterTabIsNewChange: function(event) {
-						var instance = this;
-
-						instance._deleteButton.set(DISABLED, event.newVal);
-					},
-
-					_afterTabViewActiveTabChange: function(event) {
+					_afterSelectionChange: function(event) {
 						var instance = this;
 
 						var activeTab = event.newVal;
@@ -451,22 +334,43 @@ AUI.add(
 						instance._saveButton.set(DISABLED, !activeTab.get(IS_DIRTY));
 
 						instance._deleteButton.set(DISABLED, activeTab.get(IS_NEW));
+					},
 
-						if (previousTab) {
-							previousTab.unmarkSearch();
-						}
+					_afterTabAdd: function(event) {
+						var instance = this;
 
-						if (instance._previewButton.StateInteraction.get(ACTIVE)) {
-							instance.fire(
-								EVENT_RENDER_GADGET,
-								{
-									entryId: entryId,
-									noCache: true
-								}
-							);
-						}
+						instance._addEntryToMap(event.target);
+					},
 
-						instance._updateUndoButtons();
+					_afterTabClose: function(event) {
+						var instance = this;
+
+						instance.fire(
+							EVENT_CLOSE_FILE_ENTRY,
+							{
+								entryId: event.entryId
+							}
+						);
+					},
+
+					_afterTabEntryIdChange: function(event) {
+						var instance = this;
+
+						instance._removeEntryFromDataSet(event.prevVal);
+
+						instance._addEntryToMap(event.target);
+					},
+
+					_afterTabIsDirtyChange: function(event) {
+						var instance = this;
+
+						instance._saveButton.set(DISABLED, !event.newVal);
+					},
+
+					_afterTabIsNewChange: function(event) {
+						var instance = this;
+
+						instance._deleteButton.set(DISABLED, event.newVal);
 					},
 
 					_afterTreeNodeAddNewFolder: function(event) {
@@ -483,7 +387,7 @@ AUI.add(
 					_afterTreeNodeAppend: function(event) {
 						var instance = this;
 
-						instance._addEntryToDataSet(event.tree.node);
+						instance._addEntryToMap(event.tree.node);
 					},
 
 					_afterTreeNodeCloseFileEntry: function(event) {
@@ -512,7 +416,7 @@ AUI.add(
 
 						instance._removeEntryFromDataSet(event.prevVal);
 
-						instance._addEntryToDataSet(event.target);
+						instance._addEntryToMap(event.target);
 					},
 
 					_afterTreeNodePublish: function(event) {
@@ -523,21 +427,19 @@ AUI.add(
 						var tab = instance._getTabFromDataSet(entryId);
 
 						if (tab && tab.get(IS_DIRTY)) {
-							var error = 'Save the gadget before publishing.';
-
-							instance._showErrorDialog(error);
+							instance._showErrorDialog(Liferay.Language.get('save-the-gadget-before-publishing'));
 						}
 						else {
 							var node = instance._getNodeFromDataSet(entryId);
 
 							var uri = instance.get('editorGadgetURL').replace('editorGadgetURLPlaceholder', node.get(FILE_ENTRY_URL));
 
-							var publishGadgetDialog = Liferay.Util._openWindow(
+							var publishGadgetDialog = Liferay.Util.Window.getWindow(
 								{
 									cache: false,
 									dialog: {
 										centered: true,
-										destroyOnClose: true,
+										destroyOnHide: true,
 										id: entryId,
 										modal: true,
 										width: 700
@@ -545,7 +447,7 @@ AUI.add(
 									dialogIframe: {
 										uri: uri
 									},
-									title: 'Publish Gadget',
+									title: Liferay.Language.get('publish-gadget'),
 									uri: uri
 								}
 							);
@@ -587,7 +489,7 @@ AUI.add(
 
 						var bodyContent = Lang.sub(TPL_URL_DISPLAY, [node.get(LABEL), node.get(FILE_ENTRY_URL)]);
 
-						instance._createDialog('URL', bodyContent, false, true, null).render();
+						instance._createDialog('URL', bodyContent, null);
 					},
 
 					_afterTreeNodeUnpublish: function(event) {
@@ -599,13 +501,13 @@ AUI.add(
 
 						var gadgetId = node.get(GADGET_ID);
 
-						instance._showConfirmationDialog('Are you sure you want to unpublish the gadget "' + node.get(LABEL) + '"?', instance._unpublishGadget, node, gadgetId);
+						instance._showConfirmationDialog(Liferay.Language.get('are-you-sure-you-want-to-unpublish-the-gadget') + ' "' + node.get(LABEL) + '"?', instance._unpublishGadget, node, gadgetId);
 					},
 
 					_afterTreeViewAppend: function(event) {
 						var instance = this;
 
-						instance._addEntryToDataSet(event.tree.node);
+						instance._addEntryToMap(event.tree.node);
 					},
 
 					_appendEditorChildren: function(data) {
@@ -617,7 +519,7 @@ AUI.add(
 						else {
 							var treeViewEditor = instance._treeViewEditor;
 
-							A.Array.each(
+							AArray.each(
 								data,
 								function(item, index, collection) {
 									var node = new A.TreeNodeEditor(
@@ -643,11 +545,9 @@ AUI.add(
 					_changeEditorFontSize: function(action) {
 						var instance = this;
 
-						var fontSize = instance._fontSize;
+						var aceEditor = instance._tabViewEditor.getSelectedTab().get(ACE_EDITOR).getEditor();
 
-						if (Lang.isUndefined(fontSize)) {
-							fontSize = 12;
-						}
+						var fontSize = aceEditor.getFontSize();
 
 						if (action == INCREASE) {
 							fontSize += 2;
@@ -668,16 +568,7 @@ AUI.add(
 							instance._increaseEditorFontSizeButton.enable();
 						}
 
-						A.StyleSheet(CODE_MIRROR).set(
-							'.CodeMirror',
-							{
-								fontSize: fontSize + 'px'
-							}
-						);
-
-						instance._fontSize = fontSize;
-
-						instance._tabViewEditor.get(ACTIVE_TAB).get(EDITOR).refresh();
+						aceEditor.setFontSize(fontSize);
 					},
 
 					_closeFileEntry: function(entryId) {
@@ -700,50 +591,54 @@ AUI.add(
 						}
 					},
 
-					_closePreviewPanel: function() {
-						var instance = this;
-
-						instance._previewResize.get(WRAPPER).hide();
-
-						var tabViewEditor = instance._tabViewEditor;
-
-						tabViewEditor.set(HEIGHT, instance._gadgetEditorHeight);
-
-						tabViewEditor.adjustEditorHeight();
-
-						var previewStateInteraction = instance._previewButton.StateInteraction;
-
-						previewStateInteraction.set(ACTIVE, false);
-					},
-
 					_closeSearchDialog: function() {
 						var instance = this;
 
-						instance._searchDialog.close();
+						instance._searchDialog.destroy();
 
-						var tab = instance._tabViewEditor.get(ACTIVE_TAB);
+						var tab = instance._tabViewEditor.getSelectedTab();
 
-						tab.unmarkSearch();
-
-						instance._searchEditorButton.StateInteraction.set(ACTIVE, false);
+						instance._searchEditorButton.toggle();
 					},
 
-					_createDialog: function(title, bodyContent, modal, close, buttons) {
+					_createDialog: function(title, bodyContent, buttons, options) {
 						var instance = this;
 
-						return new A.Dialog(
+						var centered = true;
+						var modal = true;
+						var height = 250;
+						var width = 400;
+
+						if (options) {
+							if ('centered' in options) {
+								centered = options['centered'];
+							}
+
+							if ('modal' in options) {
+								modal = options['modal'];
+							}
+
+							if ('height' in options) {
+								height = options['height'];
+							}
+
+							if ('width' in options) {
+								width = options['width'];
+							}
+						}
+
+						return Liferay.Util.Window.getWindow(
 							{
-								bodyContent: bodyContent,
-								buttons: buttons,
-								centered: true,
-								close: close,
-								destroyOnClose: true,
-								draggable: true,
-								height: 200,
-								modal: modal,
-								resizable: false,
-								title: title,
-								width: 500
+								dialog: {
+									bodyContent: bodyContent,
+									centered: centered,
+									destroyOnHide: true,
+									height: height,
+									modal: modal,
+									'toolbars.footer': buttons,
+									width: width
+								},
+								title: title
 							}
 						);
 					},
@@ -822,10 +717,10 @@ AUI.add(
 						);
 					},
 
-					_createIndexDataSet: function() {
+					_createIndexMap: function() {
 						var instance = this;
 
-						instance._indexDataSet = new A.DataSet();
+						instance._indexMap = new A.Map();
 					},
 
 					_defAddFileEntryNodeFn: function() {
@@ -858,7 +753,7 @@ AUI.add(
 						var tab = instance._getTabFromDataSet(event.entryId);
 
 						if (tab && tab.get(IS_DIRTY) && !event.noConfirm) {
-							instance._showConfirmationDialog('"' + tab.get(LABEL) + '" has not been saved. Are you sure you want to close the tab?', instance._closeFileEntry, entryId);
+							instance._showConfirmationDialog('"' + tab.get('fileName') + '" has not been saved. Are you sure you want to close the tab?', instance._closeFileEntry, entryId);
 						}
 						else {
 							instance._closeFileEntry(entryId);
@@ -870,7 +765,7 @@ AUI.add(
 
 						var entryId = event.entryId;
 
-						var unpublish = '';
+						var unpublish = STR_EMPTY;
 
 						var node = instance._getNodeFromDataSet(entryId);
 
@@ -887,7 +782,7 @@ AUI.add(
 						var node = instance._getNodeFromDataSet(event.entryId);
 
 						if (node.get(FILE_ENTRY_LOADED)) {
-							if (event.entryId != instance._tabViewEditor.get(ACTIVE_TAB).get(ENTRY_ID)) {
+							if (event.entryId != instance._tabViewEditor.getSelectedTab().get(ENTRY_ID)) {
 								var tabId = instance._getTabFromDataSet(event.entryId).get(ID);
 
 								instance._tabViewEditor.selectTabById(tabId);
@@ -915,19 +810,25 @@ AUI.add(
 					_defRenderGadgetFn: function(event) {
 						var instance = this;
 
-						var previewPanel = instance._previewPanel;
-						var previewPanelBodyNode = previewPanel.bodyNode;
+						var previewDialog = Liferay.Util.Window.getWindow(
+							{
+								dialog: {
+									centered: true,
+									destroyOnHide: true,
+									height: 400,
+									modal: true,
+									width: 600
+								},
+								title: 'Preview',
+							}
+						);
 
 						var tab = instance._getTabFromDataSet(event.entryId);
 
 						if (tab.get(IS_DIRTY) || tab.get(IS_NEW)) {
-							previewPanelBodyNode.empty();
-
 							var error = 'Save the gadget before previewing.';
 
-							previewPanel.set(BODY_CONTENT, error);
-
-							instance._showPreviewPanel();
+							previewDialog.set(BODY_CONTENT, error);
 
 							return;
 						}
@@ -938,20 +839,18 @@ AUI.add(
 
 						var callback = function(data) {
 							if (data.error) {
+								var error;
+
 								if (data.error.name == 'ProcessingException') {
-									previewPanelBodyNode.empty();
-
-									previewPanel.set(BODY_CONTENT, data.error.message);
-
-									instance._showPreviewPanel();
+									error = data.error.message;
 								}
 								else {
-									instance._showErrorDialog(data.error);
+									error = data.error;
 								}
+
+								previewDialog.set(BODY_CONTENT, error);
 							}
 							else {
-								previewPanelBodyNode.empty();
-
 								new Liferay.OpenSocial.Gadget(
 									{
 										appId: fileEntryURL,
@@ -968,20 +867,11 @@ AUI.add(
 										specUrl: fileEntryURL,
 										view: 'default'
 									}
-								).render(previewPanelBodyNode);
-
-								tab.set(IS_RENDERED, true);
-
-								instance._showPreviewPanel();
+								).render(previewDialog.bodyNode);
 							}
 						};
 
-						if (!tab.get(IS_RENDERED) || event.noCache) {
-							instance._requestGetRenderParameters(fileEntryURL, callback);
-						}
-						else {
-							instance._showPreviewPanel();
-						}
+						instance._requestGetRenderParameters(fileEntryURL, callback);
 					},
 
 					_defSaveContentFn: function(event) {
@@ -1008,7 +898,7 @@ AUI.add(
 								}
 							};
 
-							instance._requestUpdateFileEntryContent(event.entryId, tab.get(EDITOR).getValue(), callback);
+							instance._requestUpdateFileEntryContent(event.entryId, tab.get(ACE_EDITOR).getEditor().getValue(), callback);
 						}
 					},
 
@@ -1055,7 +945,7 @@ AUI.add(
 								else {
 									var children = node.getChildren(true);
 
-									A.Array.each(
+									AArray.each(
 										children,
 										function(item, index, collection) {
 											if (item.isLeaf()) {
@@ -1089,14 +979,6 @@ AUI.add(
 						else {
 							instance._requestDeleteFolder(entryId, deleteEntryCallback);
 						}
-					},
-
-					_getEditorColumnResizeWidth: function() {
-						var instance = this;
-
-						var mainEditorColumnResize = A.one('#mainEditorColumnResize');
-
-						return mainEditorColumnResize.width();
 					},
 
 					_getIORequest: function(resourceId, callback) {
@@ -1158,7 +1040,7 @@ AUI.add(
 						var duplicateLabel = false;
 
 						do {
-							duplicateLabel = A.Array.some(
+							duplicateLabel = AArray.some(
 								children,
 								function(item, index, collection) {
 									if (item.isLeaf() == leafNode && item.get(LABEL).toLowerCase() == label.toLowerCase()) {
@@ -1186,8 +1068,8 @@ AUI.add(
 
 						var node = null;
 
-						if (entryId != '') {
-							var item = instance._indexDataSet.item(entryId);
+						if (entryId != STR_EMPTY) {
+							var item = instance._indexMap.getValue(entryId);
 
 							node = item && item.node;
 						}
@@ -1211,7 +1093,7 @@ AUI.add(
 						var tab = null;
 
 						if (entryId != '') {
-							var item = instance._indexDataSet.item(entryId);
+							var item = instance._indexMap.getValue(entryId);
 
 							tab = item && item.tab;
 						}
@@ -1232,12 +1114,6 @@ AUI.add(
 						);
 					},
 
-					_onTabEditorChange: function(event) {
-						var instance = this;
-
-						instance._updateUndoButtons();
-					},
-
 					_onTabEditorFocus: function(event) {
 						var instance = this;
 
@@ -1253,58 +1129,7 @@ AUI.add(
 					_removeEntryFromDataSet: function(entryId) {
 						var instance = this;
 
-						instance._indexDataSet.removeKey(entryId);
-					},
-
-					_renderEditorColumnResize: function() {
-						var instance = this;
-
-						var gadgetEditorWidth = A.one('#gadgetEditorContent').width();
-
-						var mainEditorColumnResize = new A.Resize(
-							{
-								after: {
-									end: function(event) {
-										var tabViewEditor = instance._tabViewEditor;
-
-										var width = instance._getEditorColumnResizeWidth();
-
-										tabViewEditor.set(WIDTH, width);
-
-										instance._previewResize.get(WRAPPER).setStyle(WIDTH, width);
-
-										instance._previewPanel.set(WIDTH, width);
-
-										instance._tabViewEditor.adjustEditorHeight();
-									}
-								},
-								handles: 'l',
-								node: '#mainEditorColumnResize',
-								on: {
-									end: function(event) {
-										var treeViewEditorColumn = A.one('#treeViewEditorColumn');
-
-										var width = gadgetEditorWidth - event.target.info.offsetWidth;
-
-										treeViewEditorColumn.setStyle(WIDTH, width);
-									}
-								},
-								proxy: true,
-								wrap: true
-							}
-						);
-
-						mainEditorColumnResize.get(PROXY_EL).addClass('main-editor-column-resize-proxy');
-
-						mainEditorColumnResize.get(WRAPPER).setStyle(HEIGHT, NUM_PERCENTAGE_HUNDRED);
-
-						mainEditorColumnResize.plug(
-							A.Plugin.ResizeConstrained,
-							{
-								maxWidth: gadgetEditorWidth - 50,
-								minWidth: gadgetEditorWidth / 2
-							}
-						);
+						instance._indexMap.remove(entryId);
 					},
 
 					_renderLoadingMask: function() {
@@ -1321,94 +1146,6 @@ AUI.add(
 						).loadingmask;
 
 						instance._loadingMask = loadingMask;
-					},
-
-					_renderPreviewPanel: function() {
-						var instance = this;
-
-						var previewPanelRefreshButton = new A.ButtonItem(
-							{
-								handler: function(event) {
-									if (!event.target.get(DISABLED)) {
-										var entryId = instance._tabViewEditor.get(ACTIVE_TAB).get(ENTRY_ID);
-
-										instance.fire(
-											EVENT_RENDER_GADGET,
-											{
-												entryId: entryId,
-												noCache: true
-											}
-										);
-									}
-								},
-								icon: 'refresh'
-							}
-						);
-
-						var previewPanelCloseButton = new A.ButtonItem(
-							{
-								handler: function(event) {
-									if (!event.target.get(DISABLED)) {
-										instance._closePreviewPanel();
-									}
-								},
-								icon: 'close'
-							}
-						);
-
-						var previewPanel = new A.Panel(
-							{
-								headerContent: 'Preview',
-								icons: [
-									previewPanelRefreshButton,
-									previewPanelCloseButton
-								],
-								boundingBox: '#previewPanel'
-							}
-						).render();
-
-						instance._previewPanelRefreshButton = previewPanelRefreshButton;
-						instance._previewPanelCloseButton = previewPanelCloseButton;
-						instance._previewPanel = previewPanel;
-					},
-
-					_renderPreviewPanelResize: function() {
-						var instance = this;
-
-						var previewResize = new A.Resize(
-							{
-								handles: STR_T,
-								node: '#previewPanel',
-								after: {
-									end: function(event) {
-										var height = event.target.info.offsetHeight;
-
-										var editorHeight = instance._gadgetEditorHeight - height;
-
-										instance._tabViewEditor.set(HEIGHT,  editorHeight);
-
-										instance._tabViewEditor.adjustEditorHeight();
-
-										previewResize.get(WRAPPER).setStyle(HEIGHT, height);
-
-										instance._adjustPreviewPanelContentHeight();
-									}
-								},
-								proxy: true,
-								wrap: true
-							}
-						);
-
-						previewResize.get(PROXY_EL).addClass('preview-panel-resize-proxy');
-
-						instance._previewResize = previewResize;
-
-						previewResize.plug(A.Plugin.ResizeConstrained,
-							{
-								maxHeight: instance._gadgetEditorHeight - 50,
-								minHeight: 50
-							}
-						);
 					},
 
 					_renderTabViewEditor: function() {
@@ -1428,21 +1165,22 @@ AUI.add(
 					_renderToolbar: function() {
 						var instance = this;
 
-						var newFileEntryButton = new A.ButtonItem(
+						var newFileEntryButton = new A.Button(
 							{
-								handler: function(event) {
-									if (!event.target.get(DISABLED)) {
+								icon: 'icon-file',
+								on: {
+									click: function(event) {
 										instance.fire(EVENT_ADD_FILE_ENTRY_NODE);
 									}
-								},
-								icon: 'gadgeteditor-addfile'
+								}
 							}
 						);
 
-						var newFolderButton = new A.ButtonItem(
+						var newFolderButton = new A.Button(
 							{
-								handler: function(event) {
-									if (!event.target.get(DISABLED)) {
+								icon: 'icon-folder-close',
+								on: {
+									click: function(event) {
 										var parentFolderId = instance._treeViewEditor.getSelectedFolderId();
 
 										if (parentFolderId == 0) {
@@ -1456,17 +1194,17 @@ AUI.add(
 											}
 										);
 									}
-								},
-								icon: 'gadgeteditor-addfolder'
+								}
 							}
 						);
 
-						var saveButton = new A.ButtonItem(
+						var saveButton = new A.Button(
 							{
 								disabled: true,
-								handler: function(event) {
-									if (!event.target.get(DISABLED)) {
-										var entryId = instance._tabViewEditor.get(ACTIVE_TAB).get(ENTRY_ID);
+								icon: 'icon-save',
+								on: {
+									click: function(event) {
+										var entryId = instance._tabViewEditor.getSelectedTab().get(ENTRY_ID);
 
 										instance.fire(
 											EVENT_SAVE_CONTENT,
@@ -1475,17 +1213,17 @@ AUI.add(
 											}
 										);
 									}
-								},
-								icon: 'gadgeteditor-disk'
+								}
 							}
 						);
 
-						var deleteButton = new A.ButtonItem(
+						var deleteButton = new A.Button(
 							{
 								disabled: true,
-								handler: function(event) {
-									if (!event.target.get(DISABLED)) {
-										var entryId = instance._tabViewEditor.get(ACTIVE_TAB).get(ENTRY_ID);
+								icon: 'icon-remove',
+								on: {
+									click: function(event) {
+										var entryId = instance._tabViewEditor.getSelectedTab().get(ENTRY_ID);
 
 										instance.fire(
 											EVENT_DELETE_ENTRY,
@@ -1494,113 +1232,68 @@ AUI.add(
 											}
 										);
 									}
-								},
-								icon: 'gadgeteditor-delete'
+								}
 							}
 						);
 
-						var previewButton = new A.ButtonItem(
+						var previewButton = new A.Button(
 							{
-								activeState: true,
-								handler: function(event) {
-									if (!event.target.get(DISABLED)) {
-										if (event.target.StateInteraction.get(ACTIVE)) {
-											var entryId = instance._tabViewEditor.get(ACTIVE_TAB).get(ENTRY_ID);
+								icon: 'icon-eye-open',
+								on: {
+									click: function(event) {
+										var entryId = instance._tabViewEditor.getSelectedTab().get(ENTRY_ID);
 
-											instance.fire(
-												EVENT_RENDER_GADGET,
-												{
-													entryId: entryId
-												}
-											);
-										}
-										else {
-											instance._closePreviewPanel();
-										}
+										instance.fire(
+											EVENT_RENDER_GADGET,
+											{
+												entryId: entryId
+											}
+										);
 									}
 								},
-								icon: 'image',
 								label: 'Preview'
 							}
 						);
 
-						var increaseFontSizeButton = new A.ButtonItem(
+						var increaseFontSizeButton = new A.Button(
 							{
-								handler: function(event) {
-									if (!event.target.get(DISABLED)) {
+								icon: 'icon-zoom-in',
+								on: {
+									click: function(event) {
 										instance._changeEditorFontSize(INCREASE);
 									}
-								},
-								icon: 'zoomin'
+								}
 							}
 						);
 
-						var decreaseFontSizeButton = new A.ButtonItem(
+						var decreaseFontSizeButton = new A.Button(
 							{
-								handler: function(event) {
-									if (!event.target.get(DISABLED)) {
+								icon: 'icon-zoom-out',
+								on: {
+									click: function(event) {
 										instance._changeEditorFontSize('decrease');
 									}
-								},
-								icon: 'zoomout'
+								}
 							}
 						);
 
-						var undoEditorButton = new A.ButtonItem(
-							{
-								disabled: true,
-								handler: function(event) {
-									if (!event.target.get(DISABLED)) {
-										instance._undoContent('undo');
-									}
-								},
-								icon: 'arrowrefresh-1-l'
-							}
-						);
-
-						var redoEditorButton = new A.ButtonItem(
-							{
-								disabled: true,
-								handler: function(event) {
-									if (!event.target.get(DISABLED)) {
-										instance._undoContent('redo');
-									}
-								},
-								icon: 'arrowrefresh-1-r'
-							}
-						);
-
-						var formatEditorButton = new A.ButtonItem(
-							{
-								handler: function(event) {
-									if (!event.target.get(DISABLED)) {
-										var editor = instance._tabViewEditor.get(ACTIVE_TAB).get(EDITOR);
-
-										var lineCount = editor.lineCount();
-
-										for (var i = 1; i <= lineCount; i++) {
-											editor.indentLine(i);
-										}
-									}
-								},
-								icon: 'arrowthickstop-1-r'
-							}
-						);
-
-						var searchEditorButton = new A.ButtonItem(
+						var searchEditorButton = new A.ToggleButton(
 							{
 								activeState: true,
-								handler: function(event) {
-									if (!event.target.get(DISABLED)) {
-										if (event.target.StateInteraction.get(ACTIVE)) {
+								label: 'Search',
+								icon: 'icon-search',
+								on: {
+									click: function(event) {
+										if (event.target.get('pressed')) {
 											instance._showSearchDialog();
 										}
 										else {
 											instance._closeSearchDialog();
+
+											event.target.toggle();
 										}
 									}
-								},
-								icon: 'search'
+								}
 							}
 						);
 
@@ -1608,22 +1301,22 @@ AUI.add(
 							{
 								boundingBox: '#gadgetEditorToolbar',
 								children: [
-									newFileEntryButton,
-									newFolderButton,
-									saveButton,
-									deleteButton,
-									CONFIG_SPACER,
-									previewButton,
-									CONFIG_SPACER,
-									increaseFontSizeButton,
-									decreaseFontSizeButton,
-									CONFIG_SPACER,
-									undoEditorButton,
-									redoEditorButton,
-									CONFIG_SPACER,
-									formatEditorButton,
-									CONFIG_SPACER,
-									searchEditorButton
+									[
+										newFileEntryButton,
+										newFolderButton,
+										saveButton,
+										deleteButton,
+									],
+									[
+										previewButton
+									],
+									[
+										increaseFontSizeButton,
+										decreaseFontSizeButton,
+									],
+									[
+										searchEditorButton
+									]
 								]
 							}
 						).render();
@@ -1635,9 +1328,6 @@ AUI.add(
 						instance._previewButton = previewButton;
 						instance._increaseEditorFontSizeButton = increaseFontSizeButton;
 						instance._decreaseEditorFontSizeButton = decreaseFontSizeButton;
-						instance._undoContentButton = undoEditorButton;
-						instance._redoEditorButton = redoEditorButton;
-						instance._formatEditorButton = formatEditorButton;
 						instance._searchEditorButton = searchEditorButton;
 
 						instance._editorToolbar = editorToolbar;
@@ -1652,11 +1342,13 @@ AUI.add(
 								io: {
 									cfg: {
 										data: function(node) {
-											return {
-												folderId: node.get(ENTRY_ID),
-												getFileEntries: true,
-												repositoryId: instance.get(REPOSITORY_ID)
-											};
+											return instance.ns(
+												{
+													folderId: node.get(ENTRY_ID),
+													getFileEntries: true,
+													repositoryId: instance.get(REPOSITORY_ID)
+												}
+											);
 										},
 										on: {
 											failure: function(event) {
@@ -1844,7 +1536,7 @@ AUI.add(
 									if (tab) {
 										tab.set(LABEL, label);
 
-										tab.updateEditorMode();
+										tab.updateEditorMode(label);
 									}
 								}
 							}
@@ -1902,7 +1594,7 @@ AUI.add(
 										}
 									);
 
-									var tab = tabViewEditor.get(ACTIVE_TAB);
+									var tab = tabViewEditor.getSelectedTab();
 
 									tab.setAttrs(
 										{
@@ -1913,9 +1605,9 @@ AUI.add(
 										}
 									);
 
-									instance._addEntryToDataSet(tab);
+									instance._addEntryToMap(tab);
 
-									tab.updateEditorMode();
+									tab.updateEditorMode(label);
 								}
 								else {
 									node.setAttrs(
@@ -1940,7 +1632,7 @@ AUI.add(
 						};
 
 						if (node.isLeaf()) {
-							instance._requestAddFileEntry(label, tabViewEditor.get(ACTIVE_TAB).get(EDITOR).getValue(), parentFolderEntryId, callback);
+							instance._requestAddFileEntry(label, tabViewEditor.getSelectedTab().get(ACE_EDITOR).getEditor().getValue(), parentFolderEntryId, callback);
 						}
 						else {
 							instance._requestAddFolder(label, parentFolderEntryId, callback);
@@ -1952,7 +1644,7 @@ AUI.add(
 
 						var io = instance._getIORequest(name, callback);
 
-						io.set('data', data);
+						io.set('data', instance.ns(data));
 
 						io.start();
 
@@ -1965,29 +1657,31 @@ AUI.add(
 						var args = arguments;
 
 						var buttons = [
-							new A.ButtonItem(
-								{
-									handler: function(event) {
+							{
+								icon: 'icon-ok',
+								label: 'Yes',
+								on: {
+									click: function(event) {
 										if (callback) {
-											callback.apply(instance, A.Array(args, 2, true));
+											callback.apply(instance, AArray(args, 2, true));
 										}
 
-										instance._confirmationDialog.close();
-									},
-									label: 'Yes'
+										instance._confirmationDialog.destroy();
+									}
 								}
-							),
-							new A.ButtonItem(
-								{
-									handler: function(event) {
-										instance._confirmationDialog.close();
-									},
-									label: 'No'
+							},
+							{
+								icon: 'icon-remove',
+								label: 'No',
+								on: {
+									click: function(event) {
+										instance._confirmationDialog.destroy();
+									}
 								}
-							)
+							}
 						];
 
-						var confirmationDialog = instance._createDialog('Confirm', message, true, false, buttons).render();
+						var confirmationDialog = instance._createDialog('Confirm', message, buttons);
 
 						instance._confirmationDialog = confirmationDialog;
 					},
@@ -2004,25 +1698,7 @@ AUI.add(
 							bodyContent = Lang.sub(TPL_ERROR_MESSAGE, error);
 						}
 
-						instance._createDialog('Error', bodyContent, true, true, null).render();
-					},
-
-					_showPreviewPanel: function() {
-						var instance = this;
-
-						var previewResize = instance._previewResize;
-
-						var previewResizeWrapper = previewResize.get(WRAPPER);
-
-						var previewResizeWrapperHeight = previewResizeWrapper.height();
-
-						instance._tabViewEditor.set(HEIGHT, instance._gadgetEditorHeight - previewResizeWrapperHeight);
-
-						previewResizeWrapper.show();
-
-						instance._tabViewEditor.adjustEditorHeight();
-
-						instance._adjustPreviewPanelContentHeight();
+						instance._createDialog('Error', bodyContent, null);
 					},
 
 					_showSearchDialog: function() {
@@ -2046,56 +1722,58 @@ AUI.add(
 						form.add(replaceField, true);
 
 						var buttons = [
-							new A.ButtonItem(
+							new A.Button(
 								{
-									handler: function(event) {
-										var tab = instance._tabViewEditor.get(ACTIVE_TAB);
+									label: 'Find',
+									icon: 'icon-search',
+									on: {
+										click: function(event) {
+											var tab = instance._tabViewEditor.getSelectedTab();
 
-										var searchText = searchField.get(VALUE);
+											var searchText = searchField.get(VALUE);
 
-										tab.searchEditorText(searchText, false);
+											tab.searchEditorText(searchText, false);
+										}
 									},
-									label: 'Search'
 								}
 							),
-							new A.ButtonItem(
+							new A.Button(
 								{
-									handler: function(event) {
-										var tab = instance._tabViewEditor.get(ACTIVE_TAB);
+									label: 'Replace',
+									icon: 'icon-random',
+									on: {
+										click: function(event) {
+											var tab = instance._tabViewEditor.getSelectedTab();
 
-										var searchText = searchField.get(VALUE);
+											var searchText = searchField.get(VALUE);
 
-										var replaceText = replaceField.get(VALUE);
+											var replaceText = replaceField.get(VALUE);
 
-										tab.searchEditorText(searchText, false, replaceText, true);
-									},
-									label: 'Replace'
+											tab.searchEditorText(searchText, false, replaceText, true);
+										}
+									}
 								}
 							),
-							new A.ButtonItem(
+							new A.Button(
 								{
-									handler: function(event) {
-										instance._closeSearchDialog();
-									},
-									label: 'Close'
+									label: 'Close',
+									icon: 'icon-remove',
+									on: {
+										click: function(event) {
+											instance._closeSearchDialog();
+										}
+									}
 								}
 							)
 						];
 
-						instance._searchDialog = instance._createDialog('Search', form.get(BOUNDING_BOX), false, false, buttons).render();
-					},
+						var options = {
+							height: 300,
+							modal: false,
+							width: 400
+						};
 
-					_undoContent: function(action) {
-						var instance = this;
-
-						var editor = instance._tabViewEditor.get(ACTIVE_TAB).get(EDITOR);
-
-						if (action == 'undo') {
-							editor.undo();
-						}
-						else {
-							editor.redo();
-						}
+						instance._searchDialog = instance._createDialog('Search', form.get(BOUNDING_BOX), buttons, options);
 					},
 
 					_unpublishGadget: function(node, gadgetId) {
@@ -2120,21 +1798,6 @@ AUI.add(
 							}
 						);
 					},
-
-					_updateUndoButtons: function() {
-						var instance = this;
-
-						var tab = instance._tabViewEditor.get(ACTIVE_TAB);
-
-						var editor = instance._tabViewEditor.get(ACTIVE_TAB).get(EDITOR);
-
-						if (editor) {
-							var historySize = editor.historySize();
-
-							instance._redoEditorButton.set(DISABLED, historySize.redo == 0);
-							instance._undoContentButton.set(DISABLED, historySize.undo == 0);
-						}
-					}
 				}
 			}
 		);
@@ -2145,6 +1808,6 @@ AUI.add(
 	},
 	'',
 	{
-		requires: ['aui-dialog', 'aui-form', 'aui-loading-mask', 'aui-panel', 'aui-resize', 'aui-toolbar', 'gadget-editor-tabs', 'gadget-editor-tree', 'liferay-open-social-gadget', 'liferay-util-window', 'stylesheet']
+		requires: ['aui-button-core', 'aui-form-deprecated', 'aui-map', 'aui-panel-deprecated', 'aui-tabs-base', 'aui-toolbar', 'gadget-editor-tabs', 'gadget-editor-tree', 'liferay-open-social-gadget', 'liferay-portlet-base', 'liferay-util-window' ]
 	}
 );
