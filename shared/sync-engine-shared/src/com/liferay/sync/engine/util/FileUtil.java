@@ -18,8 +18,14 @@ import java.io.FileInputStream;
 import java.io.IOException;
 import java.io.InputStream;
 
+import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
+import java.nio.file.attribute.BasicFileAttributes;
+
+import java.util.Arrays;
+import java.util.HashSet;
+import java.util.Set;
 
 import org.apache.commons.codec.binary.Base64;
 import org.apache.commons.codec.digest.DigestUtils;
@@ -44,6 +50,8 @@ public class FileUtil {
 		}
 		catch (Exception e) {
 			_logger.error(e.getMessage(), e);
+
+			return null;
 		}
 		finally {
 			if (fileInputStream != null) {
@@ -55,16 +63,48 @@ public class FileUtil {
 				}
 			}
 		}
-
-		return null;
 	}
 
-	public static String getChecksum(String filePathName) {
+	public static String getFileKey(Path filePath) {
+		try {
+			BasicFileAttributes basicFileAttributes = Files.readAttributes(
+				filePath, BasicFileAttributes.class);
+
+			if (OSDetector.isWindows()) {
+				return String.valueOf(basicFileAttributes.creationTime());
+			}
+			else {
+				Object fileKey = basicFileAttributes.fileKey();
+
+				return fileKey.toString();
+			}
+		}
+		catch (Exception e) {
+			_logger.error(e.getMessage(), e);
+
+			return null;
+		}
+	}
+
+	public static String getFileKey(String filePathName) {
 		Path filePath = Paths.get(filePathName);
 
-		return getChecksum(filePath);
+		return getFileKey(filePath);
+	}
+
+	public static boolean isIgnoredFilePath(Path filePath) {
+		if (_syncIgnoreFileNames.contains(
+				String.valueOf(filePath.getFileName()))) {
+
+			return true;
+		}
+
+		return false;
 	}
 
 	private static Logger _logger = LoggerFactory.getLogger(FileUtil.class);
+
+	private static Set<String> _syncIgnoreFileNames = new HashSet<String>(
+		Arrays.asList(PropsValues.SYNC_IGNORE_FILE_NAMES));
 
 }

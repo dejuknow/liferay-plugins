@@ -16,7 +16,8 @@ package com.liferay.sync.engine;
 
 import com.liferay.sync.engine.model.SyncAccount;
 import com.liferay.sync.engine.service.SyncAccountService;
-import com.liferay.sync.engine.upgrade.UpgradeProcessSuite;
+import com.liferay.sync.engine.upgrade.util.UpgradeUtil;
+import com.liferay.sync.engine.util.FilePathNameUtil;
 import com.liferay.sync.engine.util.HttpUtil;
 import com.liferay.sync.engine.util.LoggerUtil;
 import com.liferay.sync.engine.util.PropsKeys;
@@ -54,15 +55,16 @@ public abstract class BaseTestCase {
 
 		LoggerUtil.initLogger();
 
-		UpgradeProcessSuite upgradeProcessSuite = new UpgradeProcessSuite();
+		UpgradeUtil.upgrade();
 
-		upgradeProcessSuite.upgrade();
-
-		filePathName = System.getProperty("user.home") + "/liferay-sync-test";
+		filePathName = FilePathNameUtil.fixFilePathName(
+			System.getProperty("user.home") + "/liferay-sync-test");
 
 		syncAccount = SyncAccountService.addSyncAccount(
-			filePathName, "test@liferay.com", "test",
+			filePathName, 10, "test@liferay.com", "test",
 			"http://localhost:8080/api/jsonws");
+
+		PowerMockito.mockStatic(HttpUtil.class);
 	}
 
 	@After
@@ -74,9 +76,7 @@ public abstract class BaseTestCase {
 		SyncAccountService.deleteSyncAccount(syncAccount.getSyncAccountId());
 	}
 
-	protected void setMockPostResponse(String fileName) throws Exception {
-		PowerMockito.mockStatic(HttpUtil.class);
-
+	protected String readResponse(String fileName) throws Exception {
 		Class<?> clazz = getClass();
 
 		InputStream inputStream = clazz.getResourceAsStream(fileName);
@@ -84,6 +84,22 @@ public abstract class BaseTestCase {
 		String response = IOUtils.toString(inputStream);
 
 		inputStream.close();
+
+		return response;
+	}
+
+	protected void setGetResponse(String fileName) throws Exception {
+		String response = readResponse(fileName);
+
+		Mockito.when(
+			HttpUtil.executeGet(Mockito.anyLong(), Mockito.anyString())
+		).thenReturn(
+			response
+		);
+	}
+
+	protected void setPostResponse(String fileName) throws Exception {
+		String response = readResponse(fileName);
 
 		Mockito.when(
 			HttpUtil.executePost(
