@@ -20,20 +20,28 @@ import com.liferay.sync.engine.filesystem.SyncWatchEventProcessor;
 import com.liferay.sync.engine.filesystem.WatchEventListener;
 import com.liferay.sync.engine.filesystem.Watcher;
 import com.liferay.sync.engine.model.SyncAccount;
-import com.liferay.sync.engine.model.SyncAccountModelListener;
-import com.liferay.sync.engine.model.SyncFileModelListener;
+import com.liferay.sync.engine.model.SyncFile;
 import com.liferay.sync.engine.model.SyncSite;
-import com.liferay.sync.engine.model.SyncSiteModelListener;
+import com.liferay.sync.engine.model.SyncWatchEvent;
 import com.liferay.sync.engine.service.SyncAccountService;
 import com.liferay.sync.engine.service.SyncFileService;
+import com.liferay.sync.engine.service.SyncPropService;
 import com.liferay.sync.engine.service.SyncSiteService;
 import com.liferay.sync.engine.upgrade.util.UpgradeUtil;
+import com.liferay.sync.engine.util.FilePathNameUtil;
 import com.liferay.sync.engine.util.LoggerUtil;
 import com.liferay.sync.engine.util.PropsValues;
+import com.liferay.sync.engine.util.SyncClientUpdater;
 import com.liferay.sync.engine.util.SyncEngineUtil;
 
+import java.io.IOException;
+
+import java.nio.file.FileVisitResult;
+import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
+import java.nio.file.SimpleFileVisitor;
+import java.nio.file.attribute.BasicFileAttributes;
 
 import java.util.HashMap;
 import java.util.List;
@@ -80,7 +88,53 @@ public class SyncEngine {
 		return _running;
 	}
 
-	public synchronized static void scheduleSyncAccountTasks(long syncAccountId)
+	public synchronized static void scheduleSyncAccountTasks(
+		final long syncAccountId) {
+
+		Runnable runnable = new Runnable() {
+
+			@Override
+			public void run() {
+				try {
+					doScheduleSyncAccountTasks(syncAccountId);
+				}
+				catch (Exception e) {
+					_logger.error(e.getMessage(), e);
+				}
+			}
+
+		};
+
+		_executorService.execute(runnable);
+	}
+
+	public synchronized static void start() {
+		if (_running) {
+			return;
+		}
+
+		try {
+			doStart();
+		}
+		catch (Exception e) {
+			_logger.error(e.getMessage(), e);
+		}
+	}
+
+	public synchronized static void stop() {
+		if (!_running) {
+			return;
+		}
+
+		try {
+			doStop();
+		}
+		catch (Exception e) {
+			_logger.error(e.getMessage(), e);
+		}
+	}
+
+	protected static void doScheduleSyncAccountTasks(long syncAccountId)
 		throws Exception {
 
 		if (!_running) {
@@ -139,38 +193,14 @@ public class SyncEngine {
 		WatchEventListener watchEventListener = new SyncSiteWatchEventListener(
 			syncAccount.getSyncAccountId());
 
+		synchronizeSyncFiles(filePath, syncAccountId, watchEventListener);
+
 		Watcher watcher = new Watcher(filePath, true, watchEventListener);
 
-		_watcherExecutorService.execute(watcher);
+		_executorService.execute(watcher);
 
 		_syncAccountTasks.put(
 			syncAccountId, new Object[] {scheduledFuture, watcher});
-	}
-
-	public synchronized static void start() {
-		if (_running) {
-			return;
-		}
-
-		try {
-			doStart();
-		}
-		catch (Exception e) {
-			_logger.error(e.getMessage(), e);
-		}
-	}
-
-	public synchronized static void stop() {
-		if (!_running) {
-			return;
-		}
-
-		try {
-			doStop();
-		}
-		catch (Exception e) {
-			_logger.error(e.getMessage(), e);
-		}
 	}
 
 	protected static void doStart() throws Exception {
@@ -185,17 +215,8 @@ public class SyncEngine {
 
 		UpgradeUtil.upgrade();
 
-		_syncAccountModelListener = new SyncAccountModelListener();
-
-		SyncAccountService.registerModelListener(_syncAccountModelListener);
-
-		_syncFileModelListener = new SyncFileModelListener();
-
-		SyncFileService.registerModelListener(_syncFileModelListener);
-
-		_syncSiteModelListener = new SyncSiteModelListener();
-
-		SyncSiteService.registerModelListener(_syncSiteModelListener);
+		SyncClientUpdater.scheduleAutoUpdateChecker(
+			SyncPropService.getInteger("updateCheckInterval", 1440));
 
 		SyncWatchEventProcessor syncWatchEventProcessor =
 			new SyncWatchEventProcessor();
@@ -235,9 +256,7 @@ public class SyncEngine {
 
 		_syncWatchEventProcessorExecutorService.shutdown();
 
-		SyncAccountService.unregisterModelListener(_syncAccountModelListener);
-		SyncFileService.unregisterModelListener(_syncFileModelListener);
-		SyncSiteService.unregisterModelListener(_syncSiteModelListener);
+		SyncClientUpdater.cancelAutoUpdateChecker();
 
 		SyncEngineUtil.fireSyncEngineStateChanged(
 			SyncEngineUtil.SYNC_ENGINE_STATE_STOPPED);
@@ -245,19 +264,76 @@ public class SyncEngine {
 		_running = false;
 	}
 
+	protected static void synchronizeSyncFiles(
+			Path filePath, long syncAccountId,
+			WatchEventListener watchEventListener)
+		throws IOException {
+
+		long startTime = System.currentTimeMillis();
+
+		Files.walkFileTree(
+			filePath,
+			new SimpleFileVisitor<Path>() {
+
+				@Override
+				public FileVisitResult preVisitDirectory(
+						Path filePath, BasicFileAttributes basicFileAttributes)
+					throws IOException {
+
+					SyncFile syncFile = SyncFileService.fetchSyncFile(
+						FilePathNameUtil.getFilePathName(filePath),
+						syncAccountId);
+
+					if (syncFile != null) {
+						syncFile.setLocalSyncTime(System.currentTimeMillis());
+
+						SyncFileService.update(syncFile);
+					}
+
+					return FileVisitResult.CONTINUE;
+				}
+
+				@Override
+				public FileVisitResult visitFile(
+					Path filePath, BasicFileAttributes basicFileAttributes) {
+
+					SyncFile syncFile = SyncFileService.fetchSyncFile(
+						FilePathNameUtil.getFilePathName(filePath),
+						syncAccountId);
+
+					if (syncFile != null) {
+						syncFile.setLocalSyncTime(System.currentTimeMillis());
+
+						SyncFileService.update(syncFile);
+					}
+
+					return FileVisitResult.CONTINUE;
+				}
+
+			}
+		);
+
+		List<SyncFile> syncFiles = SyncFileService.findSyncFiles(
+			FilePathNameUtil.getFilePathName(filePath), startTime,
+			syncAccountId);
+
+		for (SyncFile syncFile : syncFiles) {
+			watchEventListener.watchEvent(
+				SyncWatchEvent.EVENT_TYPE_DELETE,
+				java.nio.file.Paths.get(syncFile.getFilePathName()));
+		}
+	}
+
 	private static Logger _logger = LoggerFactory.getLogger(SyncEngine.class);
 
 	private static ScheduledExecutorService _eventScheduledExecutorService =
 		Executors.newScheduledThreadPool(5);
+	private static ExecutorService _executorService =
+		Executors.newCachedThreadPool();
 	private static boolean _running;
-	private static SyncAccountModelListener _syncAccountModelListener;
 	private static Map<Long, Object[]> _syncAccountTasks =
 		new HashMap<Long, Object[]>();
-	private static SyncFileModelListener _syncFileModelListener;
-	private static SyncSiteModelListener _syncSiteModelListener;
 	private static ScheduledExecutorService
 		_syncWatchEventProcessorExecutorService;
-	private static ExecutorService _watcherExecutorService =
-		Executors.newCachedThreadPool();
 
 }

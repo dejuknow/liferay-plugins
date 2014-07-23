@@ -1,4 +1,5 @@
 @import "compass";
+@import "mixins";
 
 /* ---------- Configuration ---------- */
 
@@ -15,6 +16,10 @@
 		}
 	}
 
+	.kb-ratings-type {
+		margin-left: 15px;
+	}
+
 	.kb-submit-buttons {
 		margin: 0;
 		padding: 10px 0 0;
@@ -22,6 +27,10 @@
 }
 
 /* ---------- Portal ---------- */
+
+.controls-hidden .kb-article-icons {
+	display: none;
+}
 
 .knowledge-base-portlet {
 	.field-inline {
@@ -69,43 +78,66 @@
 		font-weight: normal;
 	}
 
-	.kb-article-breadcrumbs {
-		margin: 0 5px 10px;
-	}
-
-	.kb-article-icons .taglib-workflow-status {
-		span {
-			margin-right: 0;
-			padding-right: 7px;
-		}
-
-		.taglib-icon-help {
-			display: none;
-		}
-	}
-
 	.kb-article-child {
-		margin: 15px -7px 0;
+		margin: 15px 0 0;
 
-		.kb-element-body {
-			margin: 0 0 0 20px;
-
-			.kb-article-icons {
-				padding: 4px 0;
+		@include respond-to(desktop) {
+			.kb-elements .kb-element {
+				display: inline-table;
+				padding: 0 2%;
+				margin: 1% 2%;
+				width: 41%;
 			}
 		}
 
 		.kb-element-header {
-			margin: 8px 0 0;
+			font-size: 21px;
+			line-height: 25px;
+			margin-bottom: 15px;
 
 			a {
 				display: block;
 			}
 		}
 
-		.kb-elements {
-			margin: 8px;
+		.kb-element-body a {
+			display: block;
+			margin-top: 5px;
 		}
+	}
+
+	.kb-article-previous-comments {
+		clear: both;
+		margin-left: 15px;
+
+		.kb-article-comment {
+			border-top: 1px dotted;
+			margin: 20px;
+			padding: 10px;
+		}
+
+		.kb-article-add-comment {
+			margin: 10px 25px;
+		}
+	}
+
+	.kb-article-feedback {
+		clear: both;
+		margin-left: 25px;
+
+		textarea {
+			width: 500px;
+		}
+
+		div.control-group {
+			margin-bottom: 5px;
+		}
+	}
+
+	.kb-article-feedback-actions {
+		clear: both;
+		display: block;
+		margin: 10px 0 10px 5px;
 	}
 
 	.kb-article-siblings {
@@ -155,6 +187,10 @@
 				padding-left: 15px;
 			}
 		}
+	}
+
+	.kb-article-comment-date {
+		margin-top: 15px;
 	}
 
 	.kb-attachments {
@@ -316,16 +352,6 @@
 		border-width: 0;
 	}
 
-	.kb-article-child {
-		border: 1px solid #CCC;
-
-		.kb-element-header {
-			a {
-				font-weight: bold;
-			}
-		}
-	}
-
 	.kb-article-siblings {
 		.kb-article-next, .kb-article-previous {
 			.icon {
@@ -390,7 +416,6 @@
 		border-bottom: 1px solid #CCC;
 
 		.kb-title {
-			font-size: 1.2em;
 			font-weight: bold;
 		}
 	}

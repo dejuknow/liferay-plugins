@@ -15,7 +15,6 @@
 package com.liferay.so.activities.hook.social;
 
 import com.liferay.portal.kernel.exception.PortalException;
-import com.liferay.portal.kernel.exception.SystemException;
 import com.liferay.portal.kernel.util.HtmlUtil;
 import com.liferay.portal.kernel.util.StringBundler;
 import com.liferay.portal.kernel.util.StringPool;
@@ -44,9 +43,7 @@ public class BlogsActivityInterpreter extends SOSocialActivityInterpreter {
 	}
 
 	@Override
-	public void updateActivitySet(long activityId)
-		throws PortalException, SystemException {
-
+	public void updateActivitySet(long activityId) throws PortalException {
 		SocialActivity activity =
 			SocialActivityLocalServiceUtil.fetchSocialActivity(activityId);
 
@@ -74,6 +71,10 @@ public class BlogsActivityInterpreter extends SOSocialActivityInterpreter {
 			activity.getClassPK());
 
 		Date displayDate = blogsEntry.getDisplayDate();
+
+		if (displayDate.before(blogsEntry.getCreateDate())) {
+			return;
+		}
 
 		activitySet.setModifiedDate(displayDate.getTime());
 
