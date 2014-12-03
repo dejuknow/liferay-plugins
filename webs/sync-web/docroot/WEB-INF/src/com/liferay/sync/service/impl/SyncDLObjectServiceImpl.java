@@ -59,8 +59,6 @@ import com.liferay.sync.model.SyncConstants;
 import com.liferay.sync.model.SyncContext;
 import com.liferay.sync.model.SyncDLObject;
 import com.liferay.sync.model.SyncDLObjectUpdate;
-import com.liferay.sync.model.SyncZipDLObject;
-import com.liferay.sync.model.impl.SyncDLObjectImpl;
 import com.liferay.sync.service.base.SyncDLObjectServiceBaseImpl;
 import com.liferay.sync.util.PortletPropsKeys;
 import com.liferay.sync.util.PortletPropsValues;
@@ -835,11 +833,11 @@ public class SyncDLObjectServiceImpl extends SyncDLObjectServiceBaseImpl {
 	}
 
 	@Override
-	public Map<Long, SyncZipDLObject> updateFileEntries(File zipFile)
+	public Map<String, Object> updateFileEntries(File zipFile)
 		throws PortalException {
 
-		Map<Long, SyncZipDLObject> responseSyncDLObjects =
-			new HashMap<Long, SyncZipDLObject>();
+		Map<String, Object> responseSyncDLObjects =
+			new HashMap<String, Object>();
 
 		ZipReader zipReader = ZipReaderFactoryUtil.getZipReader(zipFile);
 
@@ -852,7 +850,7 @@ public class SyncDLObjectServiceImpl extends SyncDLObjectServiceBaseImpl {
 
 			SyncDLObject syncDLObject = null;
 
-			long zipId = jsonObject.getLong("zipId");
+			String zipFileId = jsonObject.getString("zipFileId");
 
 			ServiceContext serviceContext = new ServiceContext();
 
@@ -866,7 +864,7 @@ public class SyncDLObjectServiceImpl extends SyncDLObjectServiceBaseImpl {
 			try {
 				if (urlPath.endsWith("/add-file-entry")) {
 					InputStream is = zipReader.getEntryAsInputStream(
-						"/" + zipId);
+						"/" + zipFileId);
 
 					File tempFile = FileUtil.createTempFile(is);
 
@@ -907,7 +905,7 @@ public class SyncDLObjectServiceImpl extends SyncDLObjectServiceBaseImpl {
 				}
 				else if (urlPath.endsWith("/patch-file-entry")) {
 					InputStream is = zipReader.getEntryAsInputStream(
-						"/" + zipId);
+						"/" + zipFileId);
 
 					File tempFile = FileUtil.createTempFile(is);
 
@@ -924,7 +922,7 @@ public class SyncDLObjectServiceImpl extends SyncDLObjectServiceBaseImpl {
 				}
 				else if (urlPath.endsWith("/update-file-entry")) {
 					InputStream is = zipReader.getEntryAsInputStream(
-						"/" + zipId);
+						"/" + zipFileId);
 
 					File tempFile = FileUtil.createTempFile(is);
 
@@ -945,20 +943,11 @@ public class SyncDLObjectServiceImpl extends SyncDLObjectServiceBaseImpl {
 						jsonObject.getString("description"), serviceContext);
 				}
 
-				SyncZipDLObject syncZipDLObject = new SyncZipDLObject(
-					syncDLObject);
-
-				syncZipDLObject.setZipId(zipId);
-
-				responseSyncDLObjects.put(zipId, syncZipDLObject);
+				responseSyncDLObjects.put(zipFileId, syncDLObject);
 			}
 			catch (Exception e) {
-				SyncZipDLObject syncZipDLObject = new SyncZipDLObject(
-					new SyncDLObjectImpl());
-
-				syncZipDLObject.setException(SyncUtil.buildExceptionMessage(e));
-
-				responseSyncDLObjects.put(zipId, syncZipDLObject);
+				responseSyncDLObjects.put(
+					zipFileId, SyncUtil.buildExceptionMessage(e));
 			}
 		}
 
