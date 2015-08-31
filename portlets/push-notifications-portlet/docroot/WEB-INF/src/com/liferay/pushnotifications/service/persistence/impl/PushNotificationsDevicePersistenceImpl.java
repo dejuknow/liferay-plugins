@@ -16,7 +16,6 @@ package com.liferay.pushnotifications.service.persistence.impl;
 
 import aQute.bnd.annotation.ProviderType;
 
-import com.liferay.portal.kernel.cache.CacheRegistryUtil;
 import com.liferay.portal.kernel.dao.orm.EntityCacheUtil;
 import com.liferay.portal.kernel.dao.orm.FinderCacheUtil;
 import com.liferay.portal.kernel.dao.orm.FinderPath;
@@ -27,10 +26,7 @@ import com.liferay.portal.kernel.dao.orm.Session;
 import com.liferay.portal.kernel.log.Log;
 import com.liferay.portal.kernel.log.LogFactoryUtil;
 import com.liferay.portal.kernel.util.ArrayUtil;
-import com.liferay.portal.kernel.util.GetterUtil;
 import com.liferay.portal.kernel.util.OrderByComparator;
-import com.liferay.portal.kernel.util.PropsKeys;
-import com.liferay.portal.kernel.util.PropsUtil;
 import com.liferay.portal.kernel.util.StringBundler;
 import com.liferay.portal.kernel.util.StringPool;
 import com.liferay.portal.kernel.util.StringUtil;
@@ -1233,10 +1229,6 @@ public class PushNotificationsDevicePersistenceImpl extends BasePersistenceImpl<
 	 */
 	@Override
 	public void clearCache() {
-		if (_HIBERNATE_CACHE_USE_SECOND_LEVEL_CACHE) {
-			CacheRegistryUtil.clear(PushNotificationsDeviceImpl.class.getName());
-		}
-
 		EntityCacheUtil.clearCache(PushNotificationsDeviceImpl.class);
 
 		FinderCacheUtil.clearCache(FINDER_CLASS_NAME_ENTITY);
@@ -1279,8 +1271,8 @@ public class PushNotificationsDevicePersistenceImpl extends BasePersistenceImpl<
 	}
 
 	protected void cacheUniqueFindersCache(
-		PushNotificationsDevice pushNotificationsDevice) {
-		if (pushNotificationsDevice.isNew()) {
+		PushNotificationsDevice pushNotificationsDevice, boolean isNew) {
+		if (isNew) {
 			Object[] args = new Object[] { pushNotificationsDevice.getToken() };
 
 			FinderCacheUtil.putResult(FINDER_PATH_COUNT_BY_TOKEN, args,
@@ -1445,7 +1437,7 @@ public class PushNotificationsDevicePersistenceImpl extends BasePersistenceImpl<
 				pushNotificationsDevice.setNew(false);
 			}
 			else {
-				session.merge(pushNotificationsDevice);
+				pushNotificationsDevice = (PushNotificationsDevice)session.merge(pushNotificationsDevice);
 			}
 		}
 		catch (Exception e) {
@@ -1489,8 +1481,9 @@ public class PushNotificationsDevicePersistenceImpl extends BasePersistenceImpl<
 			pushNotificationsDevice.getPrimaryKey(), pushNotificationsDevice,
 			false);
 
-		clearUniqueFindersCache(pushNotificationsDevice);
-		cacheUniqueFindersCache(pushNotificationsDevice);
+		clearUniqueFindersCache((PushNotificationsDevice)pushNotificationsDeviceModelImpl);
+		cacheUniqueFindersCache((PushNotificationsDevice)pushNotificationsDeviceModelImpl,
+			isNew);
 
 		pushNotificationsDevice.resetOriginalValues();
 
@@ -1874,6 +1867,11 @@ public class PushNotificationsDevicePersistenceImpl extends BasePersistenceImpl<
 		return count.intValue();
 	}
 
+	@Override
+	protected Map<String, Integer> getTableColumnsMap() {
+		return PushNotificationsDeviceModelImpl.TABLE_COLUMNS_MAP;
+	}
+
 	/**
 	 * Initializes the push notifications device persistence.
 	 */
@@ -1896,8 +1894,6 @@ public class PushNotificationsDevicePersistenceImpl extends BasePersistenceImpl<
 	private static final String _ORDER_BY_ENTITY_ALIAS = "pushNotificationsDevice.";
 	private static final String _NO_SUCH_ENTITY_WITH_PRIMARY_KEY = "No PushNotificationsDevice exists with the primary key ";
 	private static final String _NO_SUCH_ENTITY_WITH_KEY = "No PushNotificationsDevice exists with the key {";
-	private static final boolean _HIBERNATE_CACHE_USE_SECOND_LEVEL_CACHE = GetterUtil.getBoolean(PropsUtil.get(
-				PropsKeys.HIBERNATE_CACHE_USE_SECOND_LEVEL_CACHE));
 	private static final Log _log = LogFactoryUtil.getLog(PushNotificationsDevicePersistenceImpl.class);
 	private static final PushNotificationsDevice _nullPushNotificationsDevice = new PushNotificationsDeviceImpl() {
 			@Override
