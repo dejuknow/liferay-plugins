@@ -1,0 +1,14 @@
+--- a/org/apache/shindig/common/util/ResourceLoader.java
++++ b/org/apache/shindig/common/util/ResourceLoader.java
+@@ -67,6 +67,11 @@
+       // If we cannot find the resource using the current classes class loader
+       // try the current threads
+       cl = Thread.currentThread().getContextClassLoader();
++
++      if (cl == null) {
++       throw new FileNotFoundException("Can not locate resource: " + resource);
++      }
++
+       return openResource(cl, resource);
+     }
+   }

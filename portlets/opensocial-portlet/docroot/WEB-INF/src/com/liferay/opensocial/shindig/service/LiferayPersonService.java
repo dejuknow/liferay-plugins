@@ -14,6 +14,8 @@
 
 package com.liferay.opensocial.shindig.service;
 
+import com.google.common.util.concurrent.Futures;
+
 import com.liferay.opensocial.shindig.util.ShindigUtil;
 import com.liferay.portal.kernel.dao.orm.QueryUtil;
 import com.liferay.portal.kernel.log.Log;
@@ -46,7 +48,6 @@ import java.util.concurrent.Future;
 import javax.servlet.http.HttpServletResponse;
 
 import org.apache.shindig.auth.SecurityToken;
-import org.apache.shindig.common.util.ImmediateFuture;
 import org.apache.shindig.protocol.ProtocolException;
 import org.apache.shindig.protocol.RestfulCollection;
 import org.apache.shindig.social.core.model.ListFieldImpl;
@@ -77,7 +78,7 @@ public class LiferayPersonService implements PersonService {
 			RestfulCollection<Person> people = doGetPeople(
 				userIds, groupId, collectionOptions, fields, securityToken);
 
-			return ImmediateFuture.newInstance(people);
+			return Futures.immediateFuture(people);
 		}
 		catch (Exception e) {
 			if (_log.isDebugEnabled()) {
@@ -97,7 +98,7 @@ public class LiferayPersonService implements PersonService {
 		try {
 			Person person = doGetPerson(userId, fields, securityToken);
 
-			return ImmediateFuture.newInstance(person);
+			return Futures.immediateFuture(person);
 		}
 		catch (Exception e) {
 			if (_log.isDebugEnabled()) {
@@ -108,6 +109,18 @@ public class LiferayPersonService implements PersonService {
 				HttpServletResponse.SC_INTERNAL_SERVER_ERROR, e.getMessage(),
 				e);
 		}
+	}
+
+	@Override
+	public Future<Person> updatePerson(
+			UserId userId, Person person, SecurityToken securityToken)
+		throws ProtocolException {
+
+		if (_log.isWarnEnabled()) {
+			_log.warn("PersonService.updatePerson API not yet implemented");
+		}
+
+		return Futures.immediateFuture(null);
 	}
 
 	protected RestfulCollection<Person> doGetPeople(
@@ -126,8 +139,7 @@ public class LiferayPersonService implements PersonService {
 			GroupId.Type groupIdType = groupId.getType();
 
 			if (groupIdType.equals(GroupId.Type.all) ||
-				groupIdType.equals(GroupId.Type.friends) ||
-				groupIdType.equals(GroupId.Type.groupId)) {
+				groupIdType.equals(GroupId.Type.friends)) {
 
 				long userIdLong = GetterUtil.getLong(userIdString);
 

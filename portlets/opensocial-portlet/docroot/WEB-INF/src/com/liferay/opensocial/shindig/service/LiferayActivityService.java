@@ -14,6 +14,8 @@
 
 package com.liferay.opensocial.shindig.service;
 
+import com.google.common.util.concurrent.Futures;
+
 import com.liferay.opensocial.shindig.util.HttpServletRequestThreadLocal;
 import com.liferay.opensocial.shindig.util.SerializerUtil;
 import com.liferay.portal.kernel.json.JSONArray;
@@ -48,7 +50,6 @@ import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
 import org.apache.shindig.auth.SecurityToken;
-import org.apache.shindig.common.util.ImmediateFuture;
 import org.apache.shindig.protocol.ProtocolException;
 import org.apache.shindig.protocol.RestfulCollection;
 import org.apache.shindig.social.core.model.ActivityImpl;
@@ -75,7 +76,7 @@ public class LiferayActivityService implements ActivityService {
 			doCreateActivity(
 				userId, groupId, appId, fields, activity, securityToken);
 
-			return ImmediateFuture.newInstance(null);
+			return Futures.immediateFuture(null);
 		}
 		catch (Exception e) {
 			if (_log.isDebugEnabled()) {
@@ -97,7 +98,7 @@ public class LiferayActivityService implements ActivityService {
 			doDeleteActivities(
 				userId, groupId, appId, activityIds, securityToken);
 
-			return ImmediateFuture.newInstance(null);
+			return Futures.immediateFuture(null);
 		}
 		catch (Exception e) {
 			if (_log.isDebugEnabled()) {
@@ -209,7 +210,7 @@ public class LiferayActivityService implements ActivityService {
 				userIds, groupId, appId, fields, collectionOptions,
 				securityToken);
 
-			return ImmediateFuture.newInstance(activities);
+			return Futures.immediateFuture(activities);
 		}
 		catch (Exception e) {
 			if (_log.isDebugEnabled()) {
@@ -233,7 +234,7 @@ public class LiferayActivityService implements ActivityService {
 				userId, groupId, appId, fields, collectionOptions, activityIds,
 				securityToken);
 
-			return ImmediateFuture.newInstance(activities);
+			return Futures.immediateFuture(activities);
 		}
 		catch (Exception e) {
 			if (_log.isDebugEnabled()) {
@@ -255,7 +256,7 @@ public class LiferayActivityService implements ActivityService {
 			Activity activity = doGetActivity(
 				userId, groupId, appId, fields, activityId, securityToken);
 
-			return ImmediateFuture.newInstance(activity);
+			return Futures.immediateFuture(activity);
 		}
 		catch (Exception e) {
 			if (_log.isDebugEnabled()) {

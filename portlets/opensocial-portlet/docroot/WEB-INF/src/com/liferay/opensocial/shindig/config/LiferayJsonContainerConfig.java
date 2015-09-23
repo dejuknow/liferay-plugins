@@ -21,6 +21,7 @@ import com.google.inject.name.Named;
 import com.liferay.opensocial.shindig.util.ShindigUtil;
 import com.liferay.portal.kernel.util.Validator;
 
+import org.apache.shindig.common.Nullable;
 import org.apache.shindig.config.ContainerConfigException;
 import org.apache.shindig.config.JsonContainerConfig;
 import org.apache.shindig.expressions.Expressions;
@@ -34,10 +35,13 @@ public class LiferayJsonContainerConfig extends JsonContainerConfig {
 	@Inject
 	public LiferayJsonContainerConfig(
 			@Named("shindig.containers.default") String containers,
+			@Nullable @Named("shindig.host") String host,
+			@Nullable @Named("shindig.port") String port,
+			@Nullable @Named("shindig.contextroot") String contextRoot,
 			Expressions expressions)
 		throws ContainerConfigException {
 
-		super(containers, null, null, expressions);
+		super(containers, host, port, contextRoot, expressions);
 	}
 
 	@Override

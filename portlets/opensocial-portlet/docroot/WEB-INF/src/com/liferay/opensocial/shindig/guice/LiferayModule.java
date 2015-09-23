@@ -15,6 +15,7 @@
 package com.liferay.opensocial.shindig.guice;
 
 import com.google.inject.AbstractModule;
+import com.google.inject.Scopes;
 import com.google.inject.name.Names;
 
 import com.liferay.opensocial.shindig.config.LiferayJsonContainerConfig;
@@ -25,16 +26,25 @@ import com.liferay.opensocial.shindig.service.LiferayMediaItemService;
 import com.liferay.opensocial.shindig.service.LiferayPersonService;
 import com.liferay.opensocial.shindig.util.ShindigUtil;
 
+import org.apache.shindig.common.cache.CacheProvider;
+import org.apache.shindig.common.cache.LruCacheProvider;
 import org.apache.shindig.config.ContainerConfig;
+import org.apache.shindig.social.core.oauth2.OAuth2DataService;
+import org.apache.shindig.social.core.oauth2.OAuth2DataServiceImpl;
+import org.apache.shindig.social.core.oauth2.OAuth2Service;
+import org.apache.shindig.social.core.oauth2.OAuth2ServiceImpl;
 import org.apache.shindig.social.opensocial.oauth.OAuthDataStore;
 import org.apache.shindig.social.opensocial.spi.ActivityService;
+import org.apache.shindig.social.opensocial.spi.ActivityStreamService;
 import org.apache.shindig.social.opensocial.spi.AlbumService;
 import org.apache.shindig.social.opensocial.spi.AppDataService;
+import org.apache.shindig.social.opensocial.spi.GroupService;
 import org.apache.shindig.social.opensocial.spi.MediaItemService;
 import org.apache.shindig.social.opensocial.spi.MessageService;
 import org.apache.shindig.social.opensocial.spi.MessageService.NotImplementedMessageService;
 import org.apache.shindig.social.opensocial.spi.PersonService;
 import org.apache.shindig.social.sample.oauth.SampleOAuthDataStore;
+import org.apache.shindig.social.sample.spi.JsonDbOpensocialService;
 
 /**
  * @author Michael Young
@@ -45,7 +55,7 @@ public class LiferayModule extends AbstractModule {
 	protected void configure() {
 		bind(String.class).annotatedWith(
 			Names.named("shindig.canonical.json.db")).toInstance(
-				"sampledata/canonicaldb.json");
+			"sampledata/canonicaldb.json");
 
 		bind(ActivityService.class).to(LiferayActivityService.class);
 		bind(AlbumService.class).to(LiferayAlbumService.class);
@@ -55,6 +65,12 @@ public class LiferayModule extends AbstractModule {
 		bind(MessageService.class).to(NotImplementedMessageService.class);
 		bind(OAuthDataStore.class).to(SampleOAuthDataStore.class);
 		bind(PersonService.class).to(LiferayPersonService.class);
+		bind(OAuth2Service.class).to(OAuth2ServiceImpl.class);
+		bind(OAuth2DataService.class).to(OAuth2DataServiceImpl.class);
+
+		bind(ActivityStreamService.class).to(JsonDbOpensocialService.class);
+		bind(GroupService.class).to(JsonDbOpensocialService.class);
+		bind(CacheProvider.class).to(LruCacheProvider.class).in(Scopes.SINGLETON);
 
 		requestStaticInjection(ShindigUtil.class);
 	}

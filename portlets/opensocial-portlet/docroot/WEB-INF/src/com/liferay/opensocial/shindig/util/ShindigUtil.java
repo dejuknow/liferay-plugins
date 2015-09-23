@@ -48,6 +48,7 @@ import com.liferay.portal.kernel.uuid.PortalUUIDUtil;
 
 import java.io.File;
 
+import java.util.HashMap;
 import java.util.Map;
 import java.util.Set;
 
@@ -56,9 +57,11 @@ import javax.portlet.ActionResponse;
 import javax.portlet.PortletPreferences;
 import javax.portlet.PortletRequest;
 
+import org.apache.shindig.auth.AbstractSecurityToken.Keys;
 import org.apache.shindig.auth.BasicSecurityToken;
-import org.apache.shindig.auth.BasicSecurityTokenCodec;
 import org.apache.shindig.auth.BlobCrypterSecurityToken;
+import org.apache.shindig.auth.DefaultSecurityTokenCodec;
+import org.apache.shindig.auth.SecurityToken;
 import org.apache.shindig.common.crypto.BasicBlobCrypter;
 import org.apache.shindig.common.crypto.BlobCrypter;
 import org.apache.shindig.config.ContainerConfig;
@@ -89,7 +92,8 @@ public class ShindigUtil {
 			String appUrl, long moduleId, String activeUrl)
 		throws Exception {
 
-		String securityToken = StringPool.BLANK;
+		String encodedSecurityToken = StringPool.BLANK;
+		SecurityToken securityToken = null;
 
 		String securityTokenType = _containerConfig.getString(
 			ContainerConfig.DEFAULT_CONTAINER, "gadgets.securityTokenType");
@@ -104,30 +108,31 @@ public class ShindigUtil {
 			BlobCrypter blobCrypter = new BasicBlobCrypter(
 				securityTokenKeyFile);
 
-			BlobCrypterSecurityToken blobCrypterSecurityToken =
+			Map<String, String> values = new HashMap<String, String>();
+
+			values.put(Keys.APP_URL.getKey(), appUrl);
+			values.put(Keys.MODULE_ID.getKey(), String.valueOf(moduleId));
+			values.put(Keys.OWNER.getKey(), ownerId);
+			values.put(Keys.VIEWER.getKey(), String.valueOf(viewerId));
+
+			securityToken =
 				new BlobCrypterSecurityToken(
-					blobCrypter, ContainerConfig.DEFAULT_CONTAINER, domain);
-
-			blobCrypterSecurityToken.setAppUrl(appUrl);
-			blobCrypterSecurityToken.setModuleId(moduleId);
-			blobCrypterSecurityToken.setOwnerId(ownerId);
-			blobCrypterSecurityToken.setViewerId(String.valueOf(viewerId));
-
-			securityToken = blobCrypterSecurityToken.encrypt();
+					ContainerConfig.DEFAULT_CONTAINER, domain, activeUrl,
+					values);
 		}
 		else if (securityTokenType.equals("insecure")) {
-			BasicSecurityToken basicSecurityToken = new BasicSecurityToken(
+			securityToken = new BasicSecurityToken(
 				ownerId, String.valueOf(viewerId), appId, domain, appUrl,
 				String.valueOf(moduleId), ContainerConfig.DEFAULT_CONTAINER,
 				activeUrl, null);
-
-			securityToken = _basicSecurityTokenCodec.encodeToken(
-				basicSecurityToken);
 		}
 
-		securityToken = HttpUtil.encodeURL(securityToken);
+		encodedSecurityToken = _defaultSecurityTokenCodec.encodeToken(
+			securityToken);
 
-		return securityToken;
+		encodedSecurityToken = HttpUtil.encodeURL(encodedSecurityToken);
+
+		return encodedSecurityToken;
 	}
 
 	public static String getColumnUserPrefs(
@@ -402,8 +407,8 @@ public class ShindigUtil {
 
 	public static String transformURL(String url) {
 		return StringUtil.replace(
-			url, new String[] {"%host%", "%scheme%"},
-			new String[] {getHost(), getScheme()});
+			url, new String[] {"%authority%", "%host%", "%scheme%"},
+			new String[] {getHost(), getHost(), getScheme()});
 	}
 
 	public static void updateOAuthConsumers(
@@ -465,10 +470,10 @@ public class ShindigUtil {
 	private static final String _TABLE_OPEN_SOCIAL = "OPEN_SOCIAL_DATA_";
 
 	@Inject
-	private static BasicSecurityTokenCodec _basicSecurityTokenCodec;
+	private static ContainerConfig _containerConfig;
 
 	@Inject
-	private static ContainerConfig _containerConfig;
+	private static DefaultSecurityTokenCodec _defaultSecurityTokenCodec;
 
 	private static AutoResetThreadLocal<String> _host =
 		new AutoResetThreadLocal<>(

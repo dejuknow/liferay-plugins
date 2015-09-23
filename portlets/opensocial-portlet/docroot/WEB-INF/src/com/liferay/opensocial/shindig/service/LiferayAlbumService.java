@@ -18,6 +18,7 @@ import com.liferay.document.library.kernel.model.DLFolder;
 import com.liferay.document.library.kernel.model.DLFolderConstants;
 import com.liferay.document.library.kernel.service.DLAppLocalServiceUtil;
 import com.liferay.document.library.kernel.service.DLAppServiceUtil;
+import com.google.common.util.concurrent.Futures;
 import com.liferay.opensocial.shindig.util.SerializerUtil;
 import com.liferay.opensocial.shindig.util.ShindigUtil;
 import com.liferay.portal.kernel.dao.orm.QueryUtil;
@@ -40,7 +41,6 @@ import java.util.concurrent.Future;
 import javax.servlet.http.HttpServletResponse;
 
 import org.apache.shindig.auth.SecurityToken;
-import org.apache.shindig.common.util.ImmediateFuture;
 import org.apache.shindig.protocol.ProtocolException;
 import org.apache.shindig.protocol.RestfulCollection;
 import org.apache.shindig.social.core.model.AlbumImpl;
@@ -63,7 +63,7 @@ public class LiferayAlbumService implements AlbumService {
 		try {
 			doCreateAlbum(userId, appId, album, securityToken);
 
-			return ImmediateFuture.newInstance(null);
+			return Futures.immediateFuture(null);
 		}
 		catch (Exception e) {
 			if (_log.isDebugEnabled()) {
@@ -84,7 +84,7 @@ public class LiferayAlbumService implements AlbumService {
 		try {
 			doDeleteAlbum(userId, appId, albumId, securityToken);
 
-			return ImmediateFuture.newInstance(null);
+			return Futures.immediateFuture(null);
 		}
 		catch (Exception e) {
 			if (_log.isDebugEnabled()) {
@@ -106,7 +106,7 @@ public class LiferayAlbumService implements AlbumService {
 			Album album = doGetAlbum(
 				userId, appId, fields, albumId, securityToken);
 
-			return ImmediateFuture.newInstance(album);
+			return Futures.immediateFuture(album);
 		}
 		catch (Exception e) {
 			if (_log.isDebugEnabled()) {
@@ -130,7 +130,7 @@ public class LiferayAlbumService implements AlbumService {
 				userIds, groupId, appId, fields, collectionOptions,
 				securityToken);
 
-			return ImmediateFuture.newInstance(albums);
+			return Futures.immediateFuture(albums);
 		}
 		catch (Exception e) {
 			if (_log.isDebugEnabled()) {
@@ -154,7 +154,7 @@ public class LiferayAlbumService implements AlbumService {
 				userId, appId, fields, collectionOptions, albumIds,
 				securityToken);
 
-			return ImmediateFuture.newInstance(albums);
+			return Futures.immediateFuture(albums);
 		}
 		catch (Exception e) {
 			if (_log.isDebugEnabled()) {
@@ -175,7 +175,7 @@ public class LiferayAlbumService implements AlbumService {
 		try {
 			doUpdateAlbum(userId, appId, album, albumId, securityToken);
 
-			return ImmediateFuture.newInstance(null);
+			return Futures.immediateFuture(null);
 		}
 		catch (Exception e) {
 			if (_log.isDebugEnabled()) {
@@ -243,7 +243,7 @@ public class LiferayAlbumService implements AlbumService {
 
 			if (groupIdType.equals(GroupId.Type.all) ||
 				groupIdType.equals(GroupId.Type.friends) ||
-				groupIdType.equals(GroupId.Type.groupId)) {
+				groupIdType.equals(GroupId.Type.objectId)) {
 
 				List<User> socialUsers = UserLocalServiceUtil.getSocialUsers(
 					user.getUserId(), SocialRelationConstants.TYPE_BI_FRIEND,

@@ -1,23 +1,23 @@
-/* @generated */
 /*
- * Licensed to the Apache Software Foundation (ASF) under one or more
- * contributor license agreements. See the NOTICE file distributed with this
- * work for additional information regarding copyright ownership. The ASF
- * licenses this file to you under the Apache License, Version 2.0 (the
- * "License"); you may not use this file except in compliance with the License.
- * You may obtain a copy of the License at
+ * Licensed to the Apache Software Foundation (ASF) under one
+ * or more contributor license agreements.  See the NOTICE file
+ * distributed with this work for additional information
+ * regarding copyright ownership.  The ASF licenses this file
+ * to you under the Apache License, Version 2.0 (the
+ * "License"); you may not use this file except in compliance
+ * with the License.  You may obtain a copy of the License at
  *
- * http://www.apache.org/licenses/LICENSE-2.0
+ *   http://www.apache.org/licenses/LICENSE-2.0
  *
- * Unless required by applicable law or agreed to in writing, software
- * distributed under the License is distributed on an "AS IS" BASIS, WITHOUT
- * WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the
- * License for the specific language governing permissions and limitations under
- * the License.
+ * Unless required by applicable law or agreed to in writing,
+ * software distributed under the License is distributed on an
+ * "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY
+ * KIND, either express or implied.  See the License for the
+ * specific language governing permissions and limitations
+ * under the License.
  */
 package org.apache.shindig.gadgets.oauth;
 
-import com.google.common.base.Charsets;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
 
@@ -31,10 +31,12 @@ import net.oauth.OAuth.Parameter;
 import org.apache.commons.codec.binary.Base64;
 import org.apache.commons.codec.digest.DigestUtils;
 import org.apache.commons.io.IOUtils;
-import org.apache.commons.lang.StringUtils;
+import org.apache.commons.lang3.StringUtils;
+import org.apache.shindig.auth.AnonymousSecurityToken;
 import org.apache.shindig.auth.OAuthConstants;
 import org.apache.shindig.auth.OAuthUtil;
 import org.apache.shindig.common.crypto.Crypto;
+import org.apache.shindig.common.logging.i18n.MessageKeys;
 import org.apache.shindig.common.uri.Uri;
 import org.apache.shindig.common.uri.UriBuilder;
 import org.apache.shindig.common.util.CharsetUtil;
@@ -45,6 +47,7 @@ import org.apache.shindig.gadgets.http.HttpResponse;
 import org.apache.shindig.gadgets.http.HttpResponseBuilder;
 import org.apache.shindig.gadgets.oauth.AccessorInfo.HttpMethod;
 import org.apache.shindig.gadgets.oauth.AccessorInfo.OAuthParamLocation;
+import org.apache.shindig.gadgets.oauth.OAuthStore.ConsumerInfo;
 import org.apache.shindig.gadgets.oauth.OAuthStore.TokenInfo;
 import org.json.JSONObject;
 
@@ -72,6 +75,9 @@ import java.util.regex.Pattern;
  * an identity mapping from ids on social network sites to their own local ids.
  */
 public class OAuthRequest {
+
+  //class name for logging purpose
+  private static final String classname = OAuthRequest.class.getName();
 
   // Maximum number of attempts at the protocol before giving up.
   private static final int MAX_ATTEMPTS = 2;
@@ -179,7 +185,7 @@ public class OAuthRequest {
       return fetchNoThrow();
     } catch (RuntimeException e) {
       // We log here to record the request/response pairs that created the failure.
-      responseParams.logDetailedWarning("OAuth fetch unexpected fatal error", e);
+      responseParams.logDetailedWarning(classname,"fetch",MessageKeys.OAUTH_FETCH_UNEXPECTED_ERROR, e);
       throw e;
     }
   }
@@ -190,7 +196,7 @@ public class OAuthRequest {
    * unchecked exception occurs, well, then the client is out of luck.
    */
   private HttpResponse fetchNoThrow() {
-    HttpResponseBuilder response = null;
+    HttpResponseBuilder response;
     try {
       accessorInfo = fetcherConfig.getTokenStore().getOAuthAccessor(
           realRequest.getSecurityToken(), realRequest.getOAuthArguments(), clientState,
@@ -199,11 +205,11 @@ public class OAuthRequest {
     } catch (OAuthRequestException e) {
       // No data for us.
       if (OAuthError.UNAUTHENTICATED.name().equals(e.getError())) {
-        responseParams.logDetailedInfo("Unauthenticated OAuth fetch", e);
+        responseParams.logDetailedInfo(classname,"fetchNoThrow",MessageKeys.UNAUTHENTICATED_OAUTH, e);
       } else if (OAuthError.BAD_OAUTH_TOKEN_URL.name().equals(e.getError())) {
-        responseParams.logDetailedInfo("Invalid OAuth fetch request", e);
+        responseParams.logDetailedInfo(classname,"fetchNoThrow",MessageKeys.INVALID_OAUTH, e);
       } else {
-        responseParams.logDetailedWarning("OAuth fetch fatal error", e);
+        responseParams.logDetailedWarning(classname,"fetchNoThrow",MessageKeys.OAUTH_FETCH_FATAL_ERROR, e);
       }
       responseParams.setSendTraceToClient(true);
       response = new HttpResponseBuilder()
@@ -215,10 +221,11 @@ public class OAuthRequest {
 
     // OK, got some data back, annotate it as necessary.
     if (response.getHttpStatusCode() >= 400) {
-      responseParams.logDetailedWarning("OAuth fetch fatal error");
+      responseParams.logDetailedWarning(classname,"fetchNoThrow",MessageKeys.OAUTH_FETCH_FATAL_ERROR);
+
       responseParams.setSendTraceToClient(true);
     } else if (responseParams.getAznUrl() != null && responseParams.sawErrorResponse()) {
-      responseParams.logDetailedWarning("OAuth fetch error, reprompting for user approval");
+      responseParams.logDetailedWarning(classname,"fetchNoThrow",MessageKeys.OAUTH_FETCH_ERROR_REPROMPT);
       responseParams.setSendTraceToClient(true);
     }
 
@@ -339,7 +346,7 @@ public class OAuthRequest {
 
     addCallback(requestTokenParams);
 
-    HttpRequest signed = sanitizeAndSign(request, requestTokenParams, true);
+    HttpRequest signed = sanitizeAndSign(request, requestTokenParams, true, this.accessorInfo.getConsumer().isOauthBodyHash());
 
     OAuthMessage reply = sendOAuthMessage(signed);
 
@@ -358,6 +365,8 @@ public class OAuthRequest {
     if (accessorInfo.getHttpMethod() == HttpMethod.POST) {
       request.setHeader("Content-Type", OAuth.FORM_ENCODED);
     }
+
+    request.setSecurityToken( new AnonymousSecurityToken( "", 0L, this.realRequest.getSecurityToken().getAppUrl()));
     return request;
   }
 
@@ -510,7 +519,7 @@ public class OAuthRequest {
    * Send it.
    */
   public HttpRequest sanitizeAndSign(HttpRequest base, List<Parameter> params,
-      boolean tokenEndpoint) throws OAuthRequestException {
+      boolean tokenEndpoint, boolean addBodyHash) throws OAuthRequestException {
     if (params == null) {
       params = Lists.newArrayList();
     }
@@ -532,14 +541,16 @@ public class OAuthRequest {
         }
         break;
       case URL_AND_BODY_HASH:
-        try {
-          byte[] body = IOUtils.toByteArray(base.getPostBody());
-          byte[] hash = DigestUtils.sha(body);
-          String b64 = new String(Base64.encodeBase64(hash), Charsets.UTF_8.name());
-          params.add(new Parameter(OAuthConstants.OAUTH_BODY_HASH, b64));
-        } catch (IOException e) {
-          throw new OAuthRequestException(OAuthError.UNKNOWN_PROBLEM,
-              "Error taking body hash", e);
+        if (addBodyHash) {
+          try {
+            byte[] body = IOUtils.toByteArray(base.getPostBody());
+            byte[] hash = DigestUtils.sha(body);
+            String b64 = CharsetUtil.newUtf8String(Base64.encodeBase64(hash));
+            params.add(new Parameter(OAuthConstants.OAUTH_BODY_HASH, b64));
+          } catch (IOException e) {
+            throw new OAuthRequestException(OAuthError.UNKNOWN_PROBLEM,
+                "Error taking body hash", e);
+          }
         }
         break;
     }
@@ -548,7 +559,9 @@ public class OAuthRequest {
     // trusted parameters have ability to override these parameters.
     List<Parameter> authParams = Lists.newArrayList();
 
-    addIdentityParams(authParams);
+    if (addBodyHash) {
+      addIdentityParams(authParams);
+    }
 
     addSignatureParams(authParams);
 
@@ -734,6 +747,7 @@ public class OAuthRequest {
     Uri accessTokenUri = Uri.parse(accessor.consumer.serviceProvider.accessTokenURL);
     HttpRequest request = new HttpRequest(accessTokenUri);
     request.setMethod(accessorInfo.getHttpMethod().toString());
+    request.setSecurityToken( new AnonymousSecurityToken( "", 0L, this.realRequest.getSecurityToken().getAppUrl()));
     if (accessorInfo.getHttpMethod() == HttpMethod.POST) {
       request.setHeader("Content-Type", OAuth.FORM_ENCODED);
     }
@@ -758,7 +772,7 @@ public class OAuthRequest {
       }
     }
 
-    HttpRequest signed = sanitizeAndSign(request, msgParams, true);
+    HttpRequest signed = sanitizeAndSign(request, msgParams, true, this.accessorInfo.getConsumer().isOauthBodyHash());
 
     OAuthMessage reply = sendOAuthMessage(signed);
 
@@ -776,7 +790,7 @@ public class OAuthRequest {
       } catch (NumberFormatException e) {
         // Hrm.  Bogus server.  We can safely ignore this, we'll just wait for the server to
         // tell us when the access token has expired.
-        responseParams.logDetailedWarning("server returned bogus expiration");
+        responseParams.logDetailedWarning(classname,"exchangeRequestToken",MessageKeys.BOGUS_EXPIRED);
       }
     }
 
@@ -832,12 +846,12 @@ public class OAuthRequest {
    * related error instead of user data.
    */
   private HttpResponseBuilder fetchData() throws OAuthRequestException, OAuthProtocolException {
-    HttpResponseBuilder builder = null;
+    HttpResponseBuilder builder;
     if (accessTokenData != null) {
       // This is a request for access token data, return it.
       builder = formatAccessTokenData();
     } else {
-      HttpRequest signed = sanitizeAndSign(realRequest, null, false);
+      HttpRequest signed = sanitizeAndSign(realRequest, null, false, this.accessorInfo.getConsumer().isOauthBodyHash());
 
       HttpResponse response = fetchFromServer(signed);
 

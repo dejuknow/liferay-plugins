@@ -22,6 +22,7 @@ import com.liferay.expando.kernel.model.ExpandoValue;
 import com.liferay.expando.kernel.service.ExpandoColumnLocalServiceUtil;
 import com.liferay.expando.kernel.service.ExpandoTableLocalServiceUtil;
 import com.liferay.expando.kernel.service.ExpandoValueLocalServiceUtil;
+import com.google.common.util.concurrent.Futures;
 import com.liferay.opensocial.shindig.util.ShindigUtil;
 import com.liferay.portal.kernel.log.Log;
 import com.liferay.portal.kernel.log.LogFactoryUtil;
@@ -41,7 +42,6 @@ import java.util.concurrent.Future;
 import javax.servlet.http.HttpServletResponse;
 
 import org.apache.shindig.auth.SecurityToken;
-import org.apache.shindig.common.util.ImmediateFuture;
 import org.apache.shindig.protocol.DataCollection;
 import org.apache.shindig.protocol.ProtocolException;
 import org.apache.shindig.social.opensocial.spi.AppDataService;
@@ -61,7 +61,7 @@ public class LiferayAppDataService implements AppDataService {
 		try {
 			doDeletePersonData(userId, groupId, appId, fields, securityToken);
 
-			return ImmediateFuture.newInstance(null);
+			return Futures.immediateFuture(null);
 		}
 		catch (Exception e) {
 			if (_log.isDebugEnabled()) {
@@ -83,7 +83,7 @@ public class LiferayAppDataService implements AppDataService {
 			DataCollection dataCollection = doGetPersonData(
 				userIds, groupId, appId, fields, securityToken);
 
-			return ImmediateFuture.newInstance(dataCollection);
+			return Futures.immediateFuture(dataCollection);
 		}
 		catch (Exception e) {
 			if (_log.isDebugEnabled()) {
@@ -98,14 +98,14 @@ public class LiferayAppDataService implements AppDataService {
 
 	public Future<Void> updatePersonData(
 			UserId userId, GroupId groupId, String appId, Set<String> fields,
-			Map<String, String> values, SecurityToken securityToken)
+			Map<String, Object> values, SecurityToken securityToken)
 		throws ProtocolException {
 
 		try {
 			doUpdatePersonData(
 				userId, groupId, appId, fields, values, securityToken);
 
-			return ImmediateFuture.newInstance(null);
+			return Futures.immediateFuture(null);
 		}
 		catch (Exception e) {
 			if (_log.isDebugEnabled()) {
@@ -147,7 +147,7 @@ public class LiferayAppDataService implements AppDataService {
 
 		long companyId = getCompanyId(securityToken);
 
-		Map<String, Map<String, String>> peopleAppData = new HashMap<>();
+		Map<String, Map<String, Object>> peopleAppData = new HashMap<>();
 
 		List<ExpandoColumn> expandoColumns = getExpandoColumns(
 			companyId, appId);
@@ -169,7 +169,7 @@ public class LiferayAppDataService implements AppDataService {
 
 			long userIdLong = GetterUtil.getLong(userIdString);
 
-			Map<String, String> personAppData = new HashMap<>();
+			Map<String, Object> personAppData = new HashMap<>();
 
 			for (String field : fields) {
 				String value = getExpandoValue(
@@ -186,7 +186,7 @@ public class LiferayAppDataService implements AppDataService {
 
 	protected void doUpdatePersonData(
 			UserId userId, GroupId groupId, String appId, Set<String> fields,
-			Map<String, String> values, SecurityToken securityToken)
+			Map<String, Object> values, SecurityToken securityToken)
 		throws Exception {
 
 		long companyId = getCompanyId(securityToken);
@@ -194,11 +194,7 @@ public class LiferayAppDataService implements AppDataService {
 		long userIdLong = GetterUtil.getLong(userId.getUserId(securityToken));
 
 		for (String key : values.keySet()) {
-
-			// Workaround for a Shindig bug that stores a Long in value instead
-			// of the expected String so we cannot use generics here
-
-			String value = String.valueOf(values.get(key));
+			Object value = values.get(key);
 
 			ExpandoColumn expandoColumn = getExpandoColumn(
 				companyId, getColumnName(appId, key));

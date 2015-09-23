@@ -17,6 +17,7 @@ package com.liferay.opensocial.shindig.service;
 import com.liferay.document.library.kernel.model.DLFileEntry;
 import com.liferay.document.library.kernel.service.DLAppLocalServiceUtil;
 import com.liferay.document.library.kernel.service.DLAppServiceUtil;
+import com.google.common.util.concurrent.Futures;
 import com.liferay.opensocial.shindig.util.SerializerUtil;
 import com.liferay.opensocial.shindig.util.ShindigUtil;
 import com.liferay.portal.kernel.dao.orm.QueryUtil;
@@ -47,7 +48,6 @@ import java.util.regex.Pattern;
 import javax.servlet.http.HttpServletResponse;
 
 import org.apache.shindig.auth.SecurityToken;
-import org.apache.shindig.common.util.ImmediateFuture;
 import org.apache.shindig.protocol.ProtocolException;
 import org.apache.shindig.protocol.RestfulCollection;
 import org.apache.shindig.social.core.model.MediaItemImpl;
@@ -71,7 +71,7 @@ public class LiferayMediaItemService implements MediaItemService {
 		try {
 			doCreateMediaItem(userId, appId, albumId, mediaItem, securityToken);
 
-			return ImmediateFuture.newInstance(null);
+			return Futures.immediateFuture(null);
 		}
 		catch (Exception e) {
 			if (_log.isDebugEnabled()) {
@@ -93,7 +93,7 @@ public class LiferayMediaItemService implements MediaItemService {
 			doDeleteMediaItem(
 				userId, appId, albumId, mediaItemId, securityToken);
 
-			return ImmediateFuture.newInstance(null);
+			return Futures.immediateFuture(null);
 		}
 		catch (Exception e) {
 			if (_log.isDebugEnabled()) {
@@ -115,7 +115,7 @@ public class LiferayMediaItemService implements MediaItemService {
 			MediaItem mediaItem = doGetMediaItem(
 				userId, appId, albumId, mediaItemId, fields, securityToken);
 
-			return ImmediateFuture.newInstance(mediaItem);
+			return Futures.immediateFuture(mediaItem);
 		}
 		catch (Exception e) {
 			if (_log.isDebugEnabled()) {
@@ -139,7 +139,7 @@ public class LiferayMediaItemService implements MediaItemService {
 				userIds, groupId, appId, fields, collectionOptions,
 				securityToken);
 
-			return ImmediateFuture.newInstance(mediaItems);
+			return Futures.immediateFuture(mediaItems);
 		}
 		catch (Exception e) {
 			if (_log.isDebugEnabled()) {
@@ -162,7 +162,7 @@ public class LiferayMediaItemService implements MediaItemService {
 				userId, appId, albumId, fields, collectionOptions,
 				securityToken);
 
-			return ImmediateFuture.newInstance(mediaItems);
+			return Futures.immediateFuture(mediaItems);
 		}
 		catch (Exception e) {
 			if (_log.isDebugEnabled()) {
@@ -186,7 +186,7 @@ public class LiferayMediaItemService implements MediaItemService {
 				userId, appId, albumId, mediaItemIds, fields, collectionOptions,
 				securityToken);
 
-			return ImmediateFuture.newInstance(mediaItems);
+			return Futures.immediateFuture(mediaItems);
 		}
 		catch (Exception e) {
 			if (_log.isDebugEnabled()) {
@@ -208,7 +208,7 @@ public class LiferayMediaItemService implements MediaItemService {
 			doUpdateMediaItem(
 				userId, appId, albumId, mediaItemId, mediaItem, securityToken);
 
-			return ImmediateFuture.newInstance(null);
+			return Futures.immediateFuture(null);
 		}
 		catch (Exception e) {
 			if (_log.isDebugEnabled()) {
@@ -276,7 +276,7 @@ public class LiferayMediaItemService implements MediaItemService {
 
 			if (groupIdType.equals(GroupId.Type.all) ||
 				groupIdType.equals(GroupId.Type.friends) ||
-				groupIdType.equals(GroupId.Type.groupId)) {
+				groupIdType.equals(GroupId.Type.objectId)) {
 
 				List<User> socialUsers = UserLocalServiceUtil.getSocialUsers(
 					user.getUserId(), SocialRelationConstants.TYPE_BI_FRIEND,

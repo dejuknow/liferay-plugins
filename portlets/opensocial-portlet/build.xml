@@ -3,7 +3,7 @@
 
 <project name="opensocial-portlet" basedir="." default="deploy">
 	<property name="compile.jsp.docroot.dir" value="tmp" />
-	<property name="original.war.file" value="shindig-server-2.0.2.war" />
+	<property name="original.war.file" value="shindig-server-2.5.2.war" />
 
 	<import file="../build-common-portlet.xml" />
 
@@ -11,8 +11,6 @@
 
 		<!-- Delete unused Shindig directories -->
 
-		<delete dir="tmp/editor" />
-		<delete dir="tmp/samplecontainer" />
 		<delete dir="tmp/sampledata" />
 
 		<!-- Merge -->
@@ -30,6 +28,10 @@
 		/>
 
 		<replace file="tmp/WEB-INF/web.xml">
+			<replacefilter
+				token="org.apache.shindig.common.cache.ehcache.EhCacheModule:"
+				value=""
+			/>
 			<replacefilter
 				token="org.apache.shindig.common.servlet.GuiceServletContextListener"
 				value="com.liferay.opensocial.shindig.servlet.GuiceServletContextListener"
@@ -108,6 +110,13 @@
 		<replaceregexp
 			flags="gs"
 			file="tmp/WEB-INF/web.xml"
+			match="&lt;filter-mapping&gt;(\s*?)&lt;filter-name&gt;hostFilter(.*?)filter-mapping&gt;"
+			replace="@HOST_FILTER_TOKEN@"
+		/>
+
+		<replaceregexp
+			flags="gs"
+			file="tmp/WEB-INF/web.xml"
 			match="&lt;servlet-mapping&gt;(\s*?)&lt;servlet-name&gt;jsonRpcServlet(.*?)servlet-mapping&gt;"
 			replace="@JSON_RPC_SERVLET_TOKEN@"
 		/>
@@ -123,6 +132,10 @@
 			<replacefilter
 				token="@AUTH_FILTER_TOKEN@"
 				property="auth.filter.replace"
+			/>
+			<replacefilter
+				token="@HOST_FILTER_TOKEN@"
+				property="host.filter.replace"
 			/>
 			<replacefilter
 				token="@JSON_RPC_SERVLET_TOKEN@"
@@ -155,17 +168,11 @@
 		</antcall>
 
 		<replace file="tmp/WEB-INF/classes/containers/default/container.js">
-			<replacefilter token="${SERVER_HOST}:${SERVER_PORT}" value="%host%" />
-			<replacefilter token="/gadgets/" value="/opensocial-portlet/gadgets/" />
-			<replacefilter token="/rpc" value="/opensocial-portlet/rpc" />
-		</replace>
-
-		<replace file="tmp/WEB-INF/classes/containers/default/container.js">
 			<replacetoken>"profile" : {</replacetoken>
 			<replacevalue><![CDATA[
 				"home" : {
 					"isOnlyVisible" : true,
-					"urlTemplate" : "http://%host%/opensocial-portlet/gadgets/home{var}"
+					"urlTemplate" : "http://%host%${CONTEXT_ROOT}/gadgets/home?{var}"
 				},
 				"profile" : {]]>
 			</replacevalue>
@@ -175,33 +182,6 @@
 			<param name="strip.comments.file" value="tmp/WEB-INF/classes/containers/default/container.js" />
 			<param name="strip.comments.encoding" value="utf-8" />
 		</antcall>
-
-		<replace file="tmp/WEB-INF/classes/containers/default/container.js">
-			<replacetoken>"gadgets.uri.iframe.lockedDomainSuffix" :  "-a.example.com:8080",</replacetoken>
-			<replacevalue></replacevalue>
-		</replace>
-
-		<replace file="tmp/WEB-INF/classes/containers/default/container.js">
-			<replacetoken>"gadgets.uri.iframe.unlockedDomain" : "www.example.com:8080",</replacetoken>
-			<replacevalue></replacevalue>
-		</replace>
-
-		<replace file="tmp/WEB-INF/classes/containers/default/container.js">
-			<replacetoken>"gadgets.uri.js.host" : "http://www.example.com/",</replacetoken>
-			<replacevalue></replacevalue>
-		</replace>
-
-		<replace file="tmp/WEB-INF/classes/containers/default/container.js">
-			<replacetoken>"gadgets.uri.js.path" : "/opensocial-portlet/gadgets/js",</replacetoken>
-			<replacevalue></replacevalue>
-		</replace>
-
-		<replaceregexp match="(&quot;gadgets\.uri\.iframe\.basePath&quot; : &quot;.*?&quot;[\s\S]*)&quot;gadgets\.uri\.iframe\.basePath&quot; : &quot;.*?&quot;," replace="\1" flags="g" byline="false">
-			<fileset
-				dir="tmp/WEB-INF/classes/containers/default/"
-				includes="container.js"
-			/>
-		</replaceregexp>
 
 		<!-- Configure oauth.json -->
 
@@ -222,7 +202,7 @@
 			<then>
 				<unzip
 					dest="tmp/WEB-INF/classes"
-					src="tmp/WEB-INF/lib/shindig-common-2.0.2.jar"
+					src="tmp/WEB-INF/lib/shindig-common-2.5.2.jar"
 				>
 					<patternset
 						includes="**/shindig.properties"
@@ -257,7 +237,7 @@
 
 		<unjar
 			dest="${tstamp.value}"
-			src="tmp/WEB-INF/lib/shindig-social-api-2.0.2.jar"
+			src="tmp/WEB-INF/lib/shindig-social-api-2.5.2.jar"
 		/>
 
 		<antcall target="strip-comments">
@@ -265,11 +245,11 @@
 			<param name="strip.comments.encoding" value="utf-8" />
 		</antcall>
 
-		<delete file="tmp/WEB-INF/lib/shindig-social-api-2.0.2.jar" />
+		<delete file="tmp/WEB-INF/lib/shindig-social-api-2.5.2.jar" />
 
 		<jar
 			basedir="${tstamp.value}"
-			destfile="tmp/WEB-INF/lib/shindig-social-api-2.0.2.jar"
+			destfile="tmp/WEB-INF/lib/shindig-social-api-2.5.2.jar"
 		/>
 
 		<delete dir="${tstamp.value}" />
@@ -282,24 +262,24 @@
 
 		<unjar
 			dest="${tstamp.value}"
-			src="tmp/WEB-INF/lib/shiro-web-1.0.0-incubating.jar"
+			src="tmp/WEB-INF/lib/shiro-web-1.2.3.jar"
 		/>
 
 		<replace file="${tstamp.value}/META-INF/shiro.tld">
 			<replacefilter token="&lt;short-name&gt;Apache Shiro&lt;/short-name&gt;" value="&lt;short-name&gt;shiro&lt;/short-name&gt;" />
 		</replace>
 
-		<delete file="tmp/WEB-INF/lib/shiro-web-1.0.0-incubating.jar" />
+		<delete file="tmp/WEB-INF/lib/shiro-web-1.2.3.jar" />
 
 		<jar
 			basedir="${tstamp.value}"
-			destfile="tmp/WEB-INF/lib/shiro-web-1.0.0-incubating.jar"
+			destfile="tmp/WEB-INF/lib/shiro-web-1.2.3.jar"
 		/>
 
 		<delete dir="${tstamp.value}" />
 
 		<!-- OpenAjax Hub -->
-
+<!--
 		<if>
 			<not>
 				<available file="tmp/gadget/js/OpenAjax_Hub_2.0.5_r1293" />
@@ -310,20 +290,11 @@
 					src="OpenAjax_Hub_2.0.5_r1293.zip"
 				/>
 			</then>
-		</if>
-
-		<!-- LPS-14616 -->
-
-		<antcall target="patch">
-			<param name="patch.destination" value="org/apache/shindig/social/opensocial/model/MediaItem.java" />
-			<param name="patch.original.lib.name" value="shindig-social-api" />
-			<param name="patch.original.lib.url" value="http://search.maven.org/remotecontent?filepath=org/apache/shindig" />
-			<param name="patch.original.lib.version" value="2.0.2" />
-			<param name="patch.source" value="patches/LPS-14616.patch" />
-		</antcall>
+		</if> -->
 
 		<!-- LPS-15003 -->
 
+<!--
 		<antcall target="patch">
 			<param name="patch.destination" value="features/rpc/rpc.js" />
 			<param name="patch.original.lib.name" value="shindig-features" />
@@ -331,6 +302,7 @@
 			<param name="patch.original.lib.version" value="2.0.2" />
 			<param name="patch.source" value="patches/LPS-15003.patch" />
 		</antcall>
+-->
 
 		<!-- LPS-21488 -->
 
@@ -338,8 +310,17 @@
 			<param name="patch.destination" value="org/apache/shindig/gadgets/oauth/OAuthRequest.java" />
 			<param name="patch.original.lib.name" value="shindig-gadgets" />
 			<param name="patch.original.lib.url" value="http://search.maven.org/remotecontent?filepath=org/apache/shindig" />
-			<param name="patch.original.lib.version" value="2.0.2" />
+			<param name="patch.original.lib.version" value="2.5.2" />
 			<param name="patch.source" value="patches/LPS-21488.patch" />
+		</antcall>
+
+
+		<antcall target="patch">
+			<param name="patch.destination" value="org/apache/shindig/common/util/ResourceLoader.java" />
+			<param name="patch.original.lib.name" value="shindig-common" />
+			<param name="patch.original.lib.url" value="http://search.maven.org/remotecontent?filepath=org/apache/shindig" />
+			<param name="patch.original.lib.version" value="2.5.2" />
+			<param name="patch.source" value="patches/LPS-DEJU.patch" />
 		</antcall>
 	</target>
 
