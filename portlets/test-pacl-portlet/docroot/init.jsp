@@ -22,7 +22,7 @@
 taglib uri="http://liferay.com/tld/ui" prefix="liferay-ui" %><%@
 taglib uri="http://liferay.com/tld/util" prefix="liferay-util" %>
 
-<%@ page import="com.liferay.chat.NoSuchEntryException" %><%@
+<%@ page import="com.liferay.chat.exception.NoSuchEntryException" %><%@
 page import="com.liferay.chat.model.Entry" %><%@
 page import="com.liferay.chat.model.EntryClp" %><%@
 page import="com.liferay.chat.service.EntryLocalService" %><%@
@@ -31,7 +31,8 @@ page import="com.liferay.chat.service.StatusLocalServiceUtil" %><%@
 page import="com.liferay.journal.util.JournalContentUtil" %><%@
 page import="com.liferay.portal.kernel.concurrent.ThreadPoolExecutor" %><%@
 page import="com.liferay.portal.kernel.dao.db.DB" %><%@
-page import="com.liferay.portal.kernel.dao.db.DBFactoryUtil" %><%@
+page import="com.liferay.portal.kernel.dao.db.DBManagerUtil" %><%@
+page import="com.liferay.portal.kernel.dao.db.DBType" %><%@
 page import="com.liferay.portal.kernel.dao.jdbc.DataAccess" %><%@
 page import="com.liferay.portal.kernel.dao.orm.DynamicQueryFactoryUtil" %><%@
 page import="com.liferay.portal.kernel.dao.orm.PortalCustomSQL" %><%@

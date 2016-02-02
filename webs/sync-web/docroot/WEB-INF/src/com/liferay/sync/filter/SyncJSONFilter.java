@@ -14,21 +14,35 @@
 
 package com.liferay.sync.filter;
 
+import com.liferay.portal.kernel.json.JSONFactoryUtil;
+import com.liferay.portal.kernel.servlet.HttpHeaders;
+import com.liferay.portal.kernel.upload.UploadServletRequest;
+import com.liferay.portal.kernel.util.Constants;
 import com.liferay.portal.kernel.util.ContentTypes;
 import com.liferay.portal.kernel.util.ParamUtil;
 import com.liferay.portal.kernel.util.PrefsPropsUtil;
 import com.liferay.portal.kernel.util.StringPool;
+import com.liferay.portal.kernel.util.StringUtil;
 import com.liferay.portal.kernel.util.WebKeys;
 import com.liferay.portal.util.PortalUtil;
 import com.liferay.sync.SyncClientMinBuildException;
 import com.liferay.sync.SyncDeviceHeaderException;
 import com.liferay.sync.SyncServicesUnavailableException;
+import com.liferay.sync.model.SyncDevice;
+import com.liferay.sync.service.SyncDeviceLocalServiceUtil;
 import com.liferay.sync.util.PortletPropsKeys;
 import com.liferay.sync.util.PortletPropsValues;
+import com.liferay.sync.util.SyncDeviceThreadLocal;
 import com.liferay.sync.util.SyncUtil;
 
 import java.io.IOException;
 import java.io.OutputStream;
+
+import java.util.ArrayList;
+import java.util.Iterator;
+import java.util.List;
+import java.util.Map;
+import java.util.Set;
 
 import javax.servlet.Filter;
 import javax.servlet.FilterChain;
@@ -59,14 +73,38 @@ public class SyncJSONFilter implements Filter {
 		HttpServletRequest httpServletRequest =
 			(HttpServletRequest)servletRequest;
 
+		String uuid = httpServletRequest.getHeader("Sync-UUID");
+
+		if (uuid != null) {
+			SyncDevice syncDevice =
+				SyncDeviceLocalServiceUtil.fetchSyncDeviceByUuidAndCompanyId(
+					uuid, PortalUtil.getCompanyId(httpServletRequest));
+
+			SyncDeviceThreadLocal.setSyncDevice(syncDevice);
+
+			filterChain.doFilter(servletRequest, servletResponse);
+
+			return;
+		}
+
 		if (uri.equals("/api/jsonws/invoke")) {
-			SyncJSONHttpServletRequestWrapper
-				syncJSONHttpServletRequestWrapper =
-					new SyncJSONHttpServletRequestWrapper(httpServletRequest);
+			String contentType = httpServletRequest.getHeader(
+				HttpHeaders.CONTENT_TYPE);
 
-			servletRequest = syncJSONHttpServletRequestWrapper;
+			if ((contentType == null) ||
+				!contentType.startsWith(ContentTypes.MULTIPART_FORM_DATA)) {
 
-			if (!syncJSONHttpServletRequestWrapper.isSyncJSONRequest()) {
+				filterChain.doFilter(servletRequest, servletResponse);
+
+				return;
+			}
+
+			if (!(httpServletRequest instanceof UploadServletRequest)) {
+				servletRequest = PortalUtil.getUploadServletRequest(
+					httpServletRequest);
+			}
+
+			if (!isSyncJSONRequest(servletRequest)) {
 				filterChain.doFilter(servletRequest, servletResponse);
 
 				return;
@@ -169,6 +207,51 @@ public class SyncJSONFilter implements Filter {
 
 	@Override
 	public void init(FilterConfig filterConfig) {
+	}
+
+	protected boolean isSyncJSONRequest(ServletRequest servletRequest) {
+		try {
+			String cmd = servletRequest.getParameter(Constants.CMD);
+
+			if (cmd == null) {
+				cmd = StringUtil.read(servletRequest.getInputStream());
+			}
+
+			Object jsonObject = JSONFactoryUtil.looseDeserialize(cmd);
+
+			List<Object> jsonItems = null;
+
+			if (jsonObject instanceof List) {
+				jsonItems = (List<Object>)jsonObject;
+			}
+			else if (jsonObject instanceof Map) {
+				jsonItems = new ArrayList<>(1);
+
+				jsonItems.add(jsonObject);
+			}
+
+			for (Object jsonItem : jsonItems) {
+				Map<String, Map<String, Object>> map =
+					(Map<String, Map<String, Object>>)jsonItem;
+
+				Set<String> keySet = map.keySet();
+
+				Iterator<String> iterator = keySet.iterator();
+
+				String key = iterator.next();
+
+				if (key.startsWith("/sync-web.") ||
+					key.startsWith("/sync-web/")) {
+
+					return true;
+				}
+			}
+		}
+		catch (Exception e) {
+			return false;
+		}
+
+		return false;
 	}
 
 	private static final int _ABSOLUTE_SYNC_CLIENT_MIN_BUILD_ANDROID = 26;

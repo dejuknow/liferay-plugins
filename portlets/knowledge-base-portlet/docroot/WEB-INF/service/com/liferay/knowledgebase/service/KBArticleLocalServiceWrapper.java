@@ -414,7 +414,7 @@ public class KBArticleLocalServiceWrapper implements KBArticleLocalService,
 	/**
 	* @deprecated As of 7.0.0, replaced by {@link
 	#getKBArticleAndAllDescendantKBArticles(long, int,
-	com.liferay.portal.kernel.util.OrderByComparator)}
+	OrderByComparator)}
 	*/
 	@Deprecated
 	@Override
@@ -619,7 +619,7 @@ public class KBArticleLocalServiceWrapper implements KBArticleLocalService,
 	/**
 	* @deprecated As of 7.0.0, replaced by {@link #getKBArticles(long, long,
 	int, int, int,
-	com.liferay.portal.kernel.util.OrderByComparator)}
+	OrderByComparator)}
 	*/
 	@Deprecated
 	@Override
@@ -783,23 +783,6 @@ public class KBArticleLocalServiceWrapper implements KBArticleLocalService,
 		throws com.liferay.portal.kernel.exception.PortalException {
 		_kbArticleLocalService.updateViewCount(userId, resourcePrimKey,
 			viewCount);
-	}
-
-	/**
-	 * @deprecated As of 6.1.0, replaced by {@link #getWrappedService}
-	 */
-	@Deprecated
-	public KBArticleLocalService getWrappedKBArticleLocalService() {
-		return _kbArticleLocalService;
-	}
-
-	/**
-	 * @deprecated As of 6.1.0, replaced by {@link #setWrappedService}
-	 */
-	@Deprecated
-	public void setWrappedKBArticleLocalService(
-		KBArticleLocalService kbArticleLocalService) {
-		_kbArticleLocalService = kbArticleLocalService;
 	}
 
 	@Override

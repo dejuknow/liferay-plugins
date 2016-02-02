@@ -16,12 +16,13 @@ package com.liferay.ams.service.persistence.impl;
 
 import aQute.bnd.annotation.ProviderType;
 
-import com.liferay.ams.NoSuchDefinitionException;
+import com.liferay.ams.exception.NoSuchDefinitionException;
 import com.liferay.ams.model.Definition;
 import com.liferay.ams.model.impl.DefinitionImpl;
 import com.liferay.ams.model.impl.DefinitionModelImpl;
 import com.liferay.ams.service.persistence.DefinitionPersistence;
 
+import com.liferay.portal.kernel.bean.BeanReference;
 import com.liferay.portal.kernel.dao.orm.EntityCache;
 import com.liferay.portal.kernel.dao.orm.EntityCacheUtil;
 import com.liferay.portal.kernel.dao.orm.FinderCache;
@@ -38,6 +39,8 @@ import com.liferay.portal.kernel.util.StringPool;
 import com.liferay.portal.model.CacheModel;
 import com.liferay.portal.service.ServiceContext;
 import com.liferay.portal.service.ServiceContextThreadLocal;
+import com.liferay.portal.service.persistence.CompanyProvider;
+import com.liferay.portal.service.persistence.CompanyProviderWrapper;
 import com.liferay.portal.service.persistence.impl.BasePersistenceImpl;
 
 import java.io.Serializable;
@@ -177,6 +180,8 @@ public class DefinitionPersistenceImpl extends BasePersistenceImpl<Definition>
 
 		definition.setNew(true);
 		definition.setPrimaryKey(definitionId);
+
+		definition.setCompanyId(companyProvider.getCompanyId());
 
 		return definition;
 	}
@@ -359,7 +364,7 @@ public class DefinitionPersistenceImpl extends BasePersistenceImpl<Definition>
 	}
 
 	/**
-	 * Returns the definition with the primary key or throws a {@link com.liferay.portal.NoSuchModelException} if it could not be found.
+	 * Returns the definition with the primary key or throws a {@link com.liferay.portal.exception.NoSuchModelException} if it could not be found.
 	 *
 	 * @param primaryKey the primary key of the definition
 	 * @return the definition
@@ -633,7 +638,7 @@ public class DefinitionPersistenceImpl extends BasePersistenceImpl<Definition>
 
 			if (orderByComparator != null) {
 				query = new StringBundler(2 +
-						(orderByComparator.getOrderByFields().length * 3));
+						(orderByComparator.getOrderByFields().length * 2));
 
 				query.append(_SQL_SELECT_DEFINITION);
 
@@ -753,6 +758,8 @@ public class DefinitionPersistenceImpl extends BasePersistenceImpl<Definition>
 		finderCache.removeCache(FINDER_CLASS_NAME_LIST_WITHOUT_PAGINATION);
 	}
 
+	@BeanReference(type = CompanyProviderWrapper.class)
+	protected CompanyProvider companyProvider;
 	protected EntityCache entityCache = EntityCacheUtil.getEntityCache();
 	protected FinderCache finderCache = FinderCacheUtil.getFinderCache();
 	private static final String _SQL_SELECT_DEFINITION = "SELECT definition FROM Definition definition";

@@ -14,14 +14,13 @@
 
 package com.liferay.knowledgebase.service.impl;
 
-import com.liferay.knowledgebase.DuplicateKBArticleUrlTitleException;
-import com.liferay.knowledgebase.InvalidKBArticleUrlTitleException;
-import com.liferay.knowledgebase.KBArticleContentException;
-import com.liferay.knowledgebase.KBArticleParentException;
-import com.liferay.knowledgebase.KBArticlePriorityException;
-import com.liferay.knowledgebase.KBArticleSourceURLException;
-import com.liferay.knowledgebase.KBArticleTitleException;
-import com.liferay.knowledgebase.NoSuchArticleException;
+import com.liferay.knowledgebase.exception.KBArticleContentException;
+import com.liferay.knowledgebase.exception.KBArticleParentException;
+import com.liferay.knowledgebase.exception.KBArticlePriorityException;
+import com.liferay.knowledgebase.exception.KBArticleSourceURLException;
+import com.liferay.knowledgebase.exception.KBArticleTitleException;
+import com.liferay.knowledgebase.exception.KBArticleUrlTitleException;
+import com.liferay.knowledgebase.exception.NoSuchArticleException;
 import com.liferay.knowledgebase.admin.importer.KBArticleImporter;
 import com.liferay.knowledgebase.admin.social.AdminActivityKeys;
 import com.liferay.knowledgebase.admin.util.AdminSubscriptionSender;
@@ -55,10 +54,11 @@ import com.liferay.portal.kernel.json.JSONFactoryUtil;
 import com.liferay.portal.kernel.json.JSONObject;
 import com.liferay.portal.kernel.log.Log;
 import com.liferay.portal.kernel.log.LogFactoryUtil;
+import com.liferay.portal.kernel.portletfilerepository.PortletFileRepositoryUtil;
 import com.liferay.portal.kernel.repository.model.FileEntry;
+import com.liferay.portal.kernel.search.IndexWriterHelperUtil;
 import com.liferay.portal.kernel.search.Indexer;
 import com.liferay.portal.kernel.search.IndexerRegistryUtil;
-import com.liferay.portal.kernel.search.SearchEngineUtil;
 import com.liferay.portal.kernel.systemevent.SystemEvent;
 import com.liferay.portal.kernel.systemevent.SystemEventHierarchyEntryThreadLocal;
 import com.liferay.portal.kernel.util.ArrayUtil;
@@ -78,7 +78,6 @@ import com.liferay.portal.model.ResourceConstants;
 import com.liferay.portal.model.Subscription;
 import com.liferay.portal.model.SystemEventConstants;
 import com.liferay.portal.model.User;
-import com.liferay.portal.portletfilerepository.PortletFileRepositoryUtil;
 import com.liferay.portal.service.ServiceContext;
 import com.liferay.portal.util.SubscriptionSender;
 import com.liferay.portlet.asset.model.AssetEntry;
@@ -1916,7 +1915,7 @@ public class KBArticleLocalServiceImpl extends KBArticleLocalServiceBaseImpl {
 
 		// Sync indexed permission fields
 
-		SearchEngineUtil.updatePermissionFields(
+		IndexWriterHelperUtil.updatePermissionFields(
 			KBArticle.class.getName(), String.valueOf(resourcePrimKey));
 	}
 
@@ -1979,17 +1978,23 @@ public class KBArticleLocalServiceImpl extends KBArticleLocalServiceBaseImpl {
 		}
 
 		if (!KnowledgeBaseUtil.isValidUrlTitle(urlTitle)) {
-			throw new InvalidKBArticleUrlTitleException(
-				"URL title must start with a '/' and contain only " +
-					"alphanumeric characters, dashes, and underscores");
+			throw new KBArticleUrlTitleException.
+				MustNotContainInvalidCharacters(urlTitle);
+		}
+
+		int urlTitleMaxSize = ModelHintsUtil.getMaxLength(
+			KBArticle.class.getName(), "urlTitle");
+
+		if (urlTitle.length() > urlTitleMaxSize) {
+			throw new KBArticleUrlTitleException.MustNotExceedMaximumSize(
+				urlTitle, urlTitleMaxSize);
 		}
 
 		Collection<KBArticle> kbArticles = kbArticlePersistence.findByG_KBFI_UT(
 			groupId, kbFolderId, urlTitle.substring(1));
 
 		if (!kbArticles.isEmpty()) {
-			throw new DuplicateKBArticleUrlTitleException(
-				"Duplicate URL title " + urlTitle);
+			throw new KBArticleUrlTitleException.MustNotBeDuplicate(urlTitle);
 		}
 	}
 

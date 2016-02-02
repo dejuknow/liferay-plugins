@@ -16,12 +16,13 @@ package com.liferay.mail.service.persistence.impl;
 
 import aQute.bnd.annotation.ProviderType;
 
-import com.liferay.mail.NoSuchMessageException;
+import com.liferay.mail.exception.NoSuchMessageException;
 import com.liferay.mail.model.Message;
 import com.liferay.mail.model.impl.MessageImpl;
 import com.liferay.mail.model.impl.MessageModelImpl;
 import com.liferay.mail.service.persistence.MessagePersistence;
 
+import com.liferay.portal.kernel.bean.BeanReference;
 import com.liferay.portal.kernel.dao.orm.EntityCache;
 import com.liferay.portal.kernel.dao.orm.EntityCacheUtil;
 import com.liferay.portal.kernel.dao.orm.FinderCache;
@@ -41,6 +42,8 @@ import com.liferay.portal.kernel.util.StringUtil;
 import com.liferay.portal.model.CacheModel;
 import com.liferay.portal.service.ServiceContext;
 import com.liferay.portal.service.ServiceContextThreadLocal;
+import com.liferay.portal.service.persistence.CompanyProvider;
+import com.liferay.portal.service.persistence.CompanyProviderWrapper;
 import com.liferay.portal.service.persistence.impl.BasePersistenceImpl;
 
 import java.io.Serializable;
@@ -212,7 +215,7 @@ public class MessagePersistenceImpl extends BasePersistenceImpl<Message>
 
 			if (orderByComparator != null) {
 				query = new StringBundler(3 +
-						(orderByComparator.getOrderByFields().length * 3));
+						(orderByComparator.getOrderByFields().length * 2));
 			}
 			else {
 				query = new StringBundler(3);
@@ -425,8 +428,9 @@ public class MessagePersistenceImpl extends BasePersistenceImpl<Message>
 		StringBundler query = null;
 
 		if (orderByComparator != null) {
-			query = new StringBundler(6 +
-					(orderByComparator.getOrderByFields().length * 6));
+			query = new StringBundler(4 +
+					(orderByComparator.getOrderByConditionFields().length * 3) +
+					(orderByComparator.getOrderByFields().length * 3));
 		}
 		else {
 			query = new StringBundler(3);
@@ -712,7 +716,7 @@ public class MessagePersistenceImpl extends BasePersistenceImpl<Message>
 
 			if (orderByComparator != null) {
 				query = new StringBundler(3 +
-						(orderByComparator.getOrderByFields().length * 3));
+						(orderByComparator.getOrderByFields().length * 2));
 			}
 			else {
 				query = new StringBundler(3);
@@ -925,8 +929,9 @@ public class MessagePersistenceImpl extends BasePersistenceImpl<Message>
 		StringBundler query = null;
 
 		if (orderByComparator != null) {
-			query = new StringBundler(6 +
-					(orderByComparator.getOrderByFields().length * 6));
+			query = new StringBundler(4 +
+					(orderByComparator.getOrderByConditionFields().length * 3) +
+					(orderByComparator.getOrderByFields().length * 3));
 		}
 		else {
 			query = new StringBundler(3);
@@ -1469,6 +1474,8 @@ public class MessagePersistenceImpl extends BasePersistenceImpl<Message>
 		message.setNew(true);
 		message.setPrimaryKey(messageId);
 
+		message.setCompanyId(companyProvider.getCompanyId());
+
 		return message;
 	}
 
@@ -1694,7 +1701,7 @@ public class MessagePersistenceImpl extends BasePersistenceImpl<Message>
 	}
 
 	/**
-	 * Returns the message with the primary key or throws a {@link com.liferay.portal.NoSuchModelException} if it could not be found.
+	 * Returns the message with the primary key or throws a {@link com.liferay.portal.exception.NoSuchModelException} if it could not be found.
 	 *
 	 * @param primaryKey the primary key of the message
 	 * @return the message
@@ -1966,7 +1973,7 @@ public class MessagePersistenceImpl extends BasePersistenceImpl<Message>
 
 			if (orderByComparator != null) {
 				query = new StringBundler(2 +
-						(orderByComparator.getOrderByFields().length * 3));
+						(orderByComparator.getOrderByFields().length * 2));
 
 				query.append(_SQL_SELECT_MESSAGE);
 
@@ -2091,6 +2098,8 @@ public class MessagePersistenceImpl extends BasePersistenceImpl<Message>
 		finderCache.removeCache(FINDER_CLASS_NAME_LIST_WITHOUT_PAGINATION);
 	}
 
+	@BeanReference(type = CompanyProviderWrapper.class)
+	protected CompanyProvider companyProvider;
 	protected EntityCache entityCache = EntityCacheUtil.getEntityCache();
 	protected FinderCache finderCache = FinderCacheUtil.getFinderCache();
 	private static final String _SQL_SELECT_MESSAGE = "SELECT message FROM Message message";

@@ -151,7 +151,8 @@ public class SyncDLObjectServiceWrapper implements SyncDLObjectService,
 	}
 
 	@Override
-	public long getLatestModifiedTime() {
+	public long getLatestModifiedTime()
+		throws com.liferay.portal.kernel.exception.PortalException {
 		return _syncDLObjectService.getLatestModifiedTime();
 	}
 
@@ -294,23 +295,6 @@ public class SyncDLObjectServiceWrapper implements SyncDLObjectService,
 		throws com.liferay.portal.kernel.exception.PortalException {
 		return _syncDLObjectService.updateFolder(folderId, name, description,
 			serviceContext);
-	}
-
-	/**
-	 * @deprecated As of 6.1.0, replaced by {@link #getWrappedService}
-	 */
-	@Deprecated
-	public SyncDLObjectService getWrappedSyncDLObjectService() {
-		return _syncDLObjectService;
-	}
-
-	/**
-	 * @deprecated As of 6.1.0, replaced by {@link #setWrappedService}
-	 */
-	@Deprecated
-	public void setWrappedSyncDLObjectService(
-		SyncDLObjectService syncDLObjectService) {
-		_syncDLObjectService = syncDLObjectService;
 	}
 
 	@Override

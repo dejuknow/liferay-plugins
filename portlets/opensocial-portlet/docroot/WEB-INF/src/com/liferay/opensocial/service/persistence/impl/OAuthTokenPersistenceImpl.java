@@ -16,12 +16,13 @@ package com.liferay.opensocial.service.persistence.impl;
 
 import aQute.bnd.annotation.ProviderType;
 
-import com.liferay.opensocial.NoSuchOAuthTokenException;
+import com.liferay.opensocial.exception.NoSuchOAuthTokenException;
 import com.liferay.opensocial.model.OAuthToken;
 import com.liferay.opensocial.model.impl.OAuthTokenImpl;
 import com.liferay.opensocial.model.impl.OAuthTokenModelImpl;
 import com.liferay.opensocial.service.persistence.OAuthTokenPersistence;
 
+import com.liferay.portal.kernel.bean.BeanReference;
 import com.liferay.portal.kernel.dao.orm.EntityCache;
 import com.liferay.portal.kernel.dao.orm.EntityCacheUtil;
 import com.liferay.portal.kernel.dao.orm.FinderCache;
@@ -41,6 +42,8 @@ import com.liferay.portal.kernel.util.Validator;
 import com.liferay.portal.model.CacheModel;
 import com.liferay.portal.service.ServiceContext;
 import com.liferay.portal.service.ServiceContextThreadLocal;
+import com.liferay.portal.service.persistence.CompanyProvider;
+import com.liferay.portal.service.persistence.CompanyProviderWrapper;
 import com.liferay.portal.service.persistence.impl.BasePersistenceImpl;
 
 import java.io.Serializable;
@@ -223,7 +226,7 @@ public class OAuthTokenPersistenceImpl extends BasePersistenceImpl<OAuthToken>
 
 			if (orderByComparator != null) {
 				query = new StringBundler(4 +
-						(orderByComparator.getOrderByFields().length * 3));
+						(orderByComparator.getOrderByFields().length * 2));
 			}
 			else {
 				query = new StringBundler(4);
@@ -483,11 +486,12 @@ public class OAuthTokenPersistenceImpl extends BasePersistenceImpl<OAuthToken>
 		StringBundler query = null;
 
 		if (orderByComparator != null) {
-			query = new StringBundler(6 +
-					(orderByComparator.getOrderByFields().length * 6));
+			query = new StringBundler(5 +
+					(orderByComparator.getOrderByConditionFields().length * 3) +
+					(orderByComparator.getOrderByFields().length * 3));
 		}
 		else {
-			query = new StringBundler(3);
+			query = new StringBundler(4);
 		}
 
 		query.append(_SQL_SELECT_OAUTHTOKEN_WHERE);
@@ -1289,6 +1293,8 @@ public class OAuthTokenPersistenceImpl extends BasePersistenceImpl<OAuthToken>
 		oAuthToken.setNew(true);
 		oAuthToken.setPrimaryKey(oAuthTokenId);
 
+		oAuthToken.setCompanyId(companyProvider.getCompanyId());
+
 		return oAuthToken;
 	}
 
@@ -1497,7 +1503,7 @@ public class OAuthTokenPersistenceImpl extends BasePersistenceImpl<OAuthToken>
 	}
 
 	/**
-	 * Returns the o auth token with the primary key or throws a {@link com.liferay.portal.NoSuchModelException} if it could not be found.
+	 * Returns the o auth token with the primary key or throws a {@link com.liferay.portal.exception.NoSuchModelException} if it could not be found.
 	 *
 	 * @param primaryKey the primary key of the o auth token
 	 * @return the o auth token
@@ -1771,7 +1777,7 @@ public class OAuthTokenPersistenceImpl extends BasePersistenceImpl<OAuthToken>
 
 			if (orderByComparator != null) {
 				query = new StringBundler(2 +
-						(orderByComparator.getOrderByFields().length * 3));
+						(orderByComparator.getOrderByFields().length * 2));
 
 				query.append(_SQL_SELECT_OAUTHTOKEN);
 
@@ -1891,6 +1897,8 @@ public class OAuthTokenPersistenceImpl extends BasePersistenceImpl<OAuthToken>
 		finderCache.removeCache(FINDER_CLASS_NAME_LIST_WITHOUT_PAGINATION);
 	}
 
+	@BeanReference(type = CompanyProviderWrapper.class)
+	protected CompanyProvider companyProvider;
 	protected EntityCache entityCache = EntityCacheUtil.getEntityCache();
 	protected FinderCache finderCache = FinderCacheUtil.getFinderCache();
 	private static final String _SQL_SELECT_OAUTHTOKEN = "SELECT oAuthToken FROM OAuthToken oAuthToken";

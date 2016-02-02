@@ -23,10 +23,8 @@ import com.liferay.portal.kernel.log.Log;
 import com.liferay.portal.kernel.log.LogFactoryUtil;
 import com.liferay.portal.kernel.search.BaseIndexer;
 import com.liferay.portal.kernel.search.Document;
-import com.liferay.portal.kernel.search.DocumentImpl;
 import com.liferay.portal.kernel.search.Field;
-import com.liferay.portal.kernel.search.SearchContext;
-import com.liferay.portal.kernel.search.SearchEngineUtil;
+import com.liferay.portal.kernel.search.IndexWriterHelperUtil;
 import com.liferay.portal.kernel.search.Summary;
 import com.liferay.portal.kernel.util.GetterUtil;
 import com.liferay.portal.kernel.util.HtmlUtil;
@@ -52,17 +50,7 @@ public class MessageIndexer extends BaseIndexer<Message> {
 
 	@Override
 	protected void doDelete(Message message) throws Exception {
-		SearchContext searchContext = new SearchContext();
-
-		searchContext.setSearchEngineId(getSearchEngineId());
-
-		Document document = new DocumentImpl();
-
-		document.addUID(CLASS_NAME, message.getMessageId());
-
-		SearchEngineUtil.deleteDocument(
-			getSearchEngineId(), message.getCompanyId(),
-			document.get(Field.UID), isCommitImmediately());
+		deleteDocument(message.getCompanyId(), message.getMessageId());
 	}
 
 	@Override
@@ -96,7 +84,7 @@ public class MessageIndexer extends BaseIndexer<Message> {
 	protected void doReindex(Message message) throws Exception {
 		Document document = getDocument(message);
 
-		SearchEngineUtil.updateDocument(
+		IndexWriterHelperUtil.updateDocument(
 			getSearchEngineId(), message.getCompanyId(), document,
 			isCommitImmediately());
 	}
@@ -130,7 +118,7 @@ public class MessageIndexer extends BaseIndexer<Message> {
 					try {
 						Document document = getDocument(message);
 
-						indexableActionableDynamicQuery.addDocument(document);
+						indexableActionableDynamicQuery.addDocuments(document);
 					}
 					catch (PortalException pe) {
 						if (_log.isWarnEnabled()) {

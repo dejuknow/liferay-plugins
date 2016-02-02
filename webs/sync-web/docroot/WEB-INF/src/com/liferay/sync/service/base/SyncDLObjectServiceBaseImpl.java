@@ -16,7 +16,7 @@ package com.liferay.sync.service.base;
 
 import com.liferay.portal.kernel.bean.BeanReference;
 import com.liferay.portal.kernel.dao.db.DB;
-import com.liferay.portal.kernel.dao.db.DBFactoryUtil;
+import com.liferay.portal.kernel.dao.db.DBManagerUtil;
 import com.liferay.portal.kernel.dao.jdbc.SqlUpdate;
 import com.liferay.portal.kernel.dao.jdbc.SqlUpdateFactoryUtil;
 import com.liferay.portal.kernel.exception.SystemException;
@@ -37,6 +37,7 @@ import com.liferay.sync.service.SyncDLObjectService;
 import com.liferay.sync.service.persistence.SyncDLFileVersionDiffPersistence;
 import com.liferay.sync.service.persistence.SyncDLObjectFinder;
 import com.liferay.sync.service.persistence.SyncDLObjectPersistence;
+import com.liferay.sync.service.persistence.SyncDevicePersistence;
 
 import javax.sql.DataSource;
 
@@ -59,6 +60,63 @@ public abstract class SyncDLObjectServiceBaseImpl extends BaseServiceImpl
 	 *
 	 * Never modify or reference this class directly. Always use {@link com.liferay.sync.service.SyncDLObjectServiceUtil} to access the sync d l object remote service.
 	 */
+
+	/**
+	 * Returns the sync device local service.
+	 *
+	 * @return the sync device local service
+	 */
+	public com.liferay.sync.service.SyncDeviceLocalService getSyncDeviceLocalService() {
+		return syncDeviceLocalService;
+	}
+
+	/**
+	 * Sets the sync device local service.
+	 *
+	 * @param syncDeviceLocalService the sync device local service
+	 */
+	public void setSyncDeviceLocalService(
+		com.liferay.sync.service.SyncDeviceLocalService syncDeviceLocalService) {
+		this.syncDeviceLocalService = syncDeviceLocalService;
+	}
+
+	/**
+	 * Returns the sync device remote service.
+	 *
+	 * @return the sync device remote service
+	 */
+	public com.liferay.sync.service.SyncDeviceService getSyncDeviceService() {
+		return syncDeviceService;
+	}
+
+	/**
+	 * Sets the sync device remote service.
+	 *
+	 * @param syncDeviceService the sync device remote service
+	 */
+	public void setSyncDeviceService(
+		com.liferay.sync.service.SyncDeviceService syncDeviceService) {
+		this.syncDeviceService = syncDeviceService;
+	}
+
+	/**
+	 * Returns the sync device persistence.
+	 *
+	 * @return the sync device persistence
+	 */
+	public SyncDevicePersistence getSyncDevicePersistence() {
+		return syncDevicePersistence;
+	}
+
+	/**
+	 * Sets the sync device persistence.
+	 *
+	 * @param syncDevicePersistence the sync device persistence
+	 */
+	public void setSyncDevicePersistence(
+		SyncDevicePersistence syncDevicePersistence) {
+		this.syncDevicePersistence = syncDevicePersistence;
+	}
 
 	/**
 	 * Returns the sync d l file version diff local service.
@@ -664,6 +722,44 @@ public abstract class SyncDLObjectServiceBaseImpl extends BaseServiceImpl
 		this.dlFileVersionPersistence = dlFileVersionPersistence;
 	}
 
+	/**
+	 * Returns the d l trash local service.
+	 *
+	 * @return the d l trash local service
+	 */
+	public com.liferay.portlet.documentlibrary.service.DLTrashLocalService getDLTrashLocalService() {
+		return dlTrashLocalService;
+	}
+
+	/**
+	 * Sets the d l trash local service.
+	 *
+	 * @param dlTrashLocalService the d l trash local service
+	 */
+	public void setDLTrashLocalService(
+		com.liferay.portlet.documentlibrary.service.DLTrashLocalService dlTrashLocalService) {
+		this.dlTrashLocalService = dlTrashLocalService;
+	}
+
+	/**
+	 * Returns the d l trash remote service.
+	 *
+	 * @return the d l trash remote service
+	 */
+	public com.liferay.portlet.documentlibrary.service.DLTrashService getDLTrashService() {
+		return dlTrashService;
+	}
+
+	/**
+	 * Sets the d l trash remote service.
+	 *
+	 * @param dlTrashService the d l trash remote service
+	 */
+	public void setDLTrashService(
+		com.liferay.portlet.documentlibrary.service.DLTrashService dlTrashService) {
+		this.dlTrashService = dlTrashService;
+	}
+
 	public void afterPropertiesSet() {
 		Class<?> clazz = getClass();
 
@@ -721,7 +817,7 @@ public abstract class SyncDLObjectServiceBaseImpl extends BaseServiceImpl
 		try {
 			DataSource dataSource = syncDLObjectPersistence.getDataSource();
 
-			DB db = DBFactoryUtil.getDB();
+			DB db = DBManagerUtil.getDB();
 
 			sql = db.buildSQL(sql);
 			sql = PortalUtil.transformSQL(sql);
@@ -736,6 +832,12 @@ public abstract class SyncDLObjectServiceBaseImpl extends BaseServiceImpl
 		}
 	}
 
+	@BeanReference(type = com.liferay.sync.service.SyncDeviceLocalService.class)
+	protected com.liferay.sync.service.SyncDeviceLocalService syncDeviceLocalService;
+	@BeanReference(type = com.liferay.sync.service.SyncDeviceService.class)
+	protected com.liferay.sync.service.SyncDeviceService syncDeviceService;
+	@BeanReference(type = SyncDevicePersistence.class)
+	protected SyncDevicePersistence syncDevicePersistence;
 	@BeanReference(type = com.liferay.sync.service.SyncDLFileVersionDiffLocalService.class)
 	protected com.liferay.sync.service.SyncDLFileVersionDiffLocalService syncDLFileVersionDiffLocalService;
 	@BeanReference(type = SyncDLFileVersionDiffPersistence.class)
@@ -800,6 +902,10 @@ public abstract class SyncDLObjectServiceBaseImpl extends BaseServiceImpl
 	protected com.liferay.portlet.documentlibrary.service.DLFileVersionService dlFileVersionService;
 	@BeanReference(type = DLFileVersionPersistence.class)
 	protected DLFileVersionPersistence dlFileVersionPersistence;
+	@BeanReference(type = com.liferay.portlet.documentlibrary.service.DLTrashLocalService.class)
+	protected com.liferay.portlet.documentlibrary.service.DLTrashLocalService dlTrashLocalService;
+	@BeanReference(type = com.liferay.portlet.documentlibrary.service.DLTrashService.class)
+	protected com.liferay.portlet.documentlibrary.service.DLTrashService dlTrashService;
 	private ClassLoader _classLoader;
 	private SyncDLObjectServiceClpInvoker _clpInvoker = new SyncDLObjectServiceClpInvoker();
 }

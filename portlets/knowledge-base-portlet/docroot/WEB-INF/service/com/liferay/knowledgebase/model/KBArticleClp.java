@@ -41,6 +41,7 @@ import java.lang.reflect.Method;
 
 import java.util.Date;
 import java.util.HashMap;
+import java.util.Locale;
 import java.util.Map;
 
 /**
@@ -1104,7 +1105,7 @@ public class KBArticleClp extends BaseModelImpl<KBArticle> implements KBArticle 
 	}
 
 	@Override
-	public java.lang.String getParentTitle(java.util.Locale locale, int status) {
+	public java.lang.String getParentTitle(Locale locale, int status) {
 		try {
 			String methodName = "getParentTitle";
 
@@ -1204,15 +1205,6 @@ public class KBArticleClp extends BaseModelImpl<KBArticle> implements KBArticle 
 	public StagedModelType getStagedModelType() {
 		return new StagedModelType(PortalUtil.getClassNameId(
 				KBArticle.class.getName()));
-	}
-
-	/**
-	 * @deprecated As of 6.1.0, replaced by {@link #isApproved}
-	 */
-	@Deprecated
-	@Override
-	public boolean getApproved() {
-		return isApproved();
 	}
 
 	@Override

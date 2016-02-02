@@ -148,7 +148,8 @@ public class SyncDLObjectServiceUtil {
 		return getService().getGroup(groupId);
 	}
 
-	public static long getLatestModifiedTime() {
+	public static long getLatestModifiedTime()
+		throws com.liferay.portal.kernel.exception.PortalException {
 		return getService().getLatestModifiedTime();
 	}
 
@@ -301,13 +302,6 @@ public class SyncDLObjectServiceUtil {
 		}
 
 		return _service;
-	}
-
-	/**
-	 * @deprecated As of 6.2.0
-	 */
-	@Deprecated
-	public void setService(SyncDLObjectService service) {
 	}
 
 	private static SyncDLObjectService _service;

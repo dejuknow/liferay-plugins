@@ -17,7 +17,7 @@
 
 package com.liferay.so.hook.listeners;
 
-import com.liferay.portal.ModelListenerException;
+import com.liferay.portal.exception.ModelListenerException;
 import com.liferay.portal.kernel.util.HttpUtil;
 import com.liferay.portal.kernel.util.Validator;
 import com.liferay.portal.kernel.util.WebKeys;
@@ -56,8 +56,13 @@ public class UserModelListener extends BaseModelListener<User> {
 			String portletId = HttpUtil.getParameter(
 				refererURL, "p_p_id", false);
 
+			String redirectURL = HttpUtil.getParameter(
+				refererURL,
+				PortalUtil.getPortletNamespace(portletId) + "redirectURL",
+				false);
+
 			String key = HttpUtil.getParameter(
-				refererURL, PortalUtil.getPortletNamespace(portletId) + "key",
+				redirectURL, PortalUtil.getPortletNamespace(portletId) + "key",
 				false);
 
 			if (Validator.isNotNull(key)) {

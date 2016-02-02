@@ -1285,7 +1285,7 @@ Please find a solution that does not require portal-impl.jar.
 					<isset property="theme.type" />
 				</not>
 				<then>
-					<var name="theme.type" value="vm" />
+					<var name="theme.type" value="ftl" />
 				</then>
 			</if>
 
@@ -1306,7 +1306,6 @@ Please find a solution that does not require portal-impl.jar.
 					<copy todir="@{module.dir}/docroot/templates" overwrite="true" preservelastmodified="true">
 						<fileset
 							dir="${unstyled.tmp.dir}/_unstyled/templates"
-							excludes="init.${theme.type}"
 							includes="*.${theme.type}"
 						/>
 					</copy>
@@ -1330,7 +1329,6 @@ Please find a solution that does not require portal-impl.jar.
 						<copy todir="@{module.dir}/docroot/templates" overwrite="true" preservelastmodified="true">
 							<fileset
 								dir="${unstyled.tmp.dir}/_unstyled/templates"
-								excludes="init.${theme.type}"
 								includes="*.${theme.type}"
 							/>
 						</copy>
@@ -1797,30 +1795,31 @@ Please find a solution that does not require portal-impl.jar.
 		</sequential>
 	</macrodef>
 
-	<macrodef name="gradle-execute">
-		<attribute default="true" name="failonerror" />
-		<attribute name="task" />
-		<element implicit="true" name="args" optional="true" />
+	<macrodef name="instrument-code">
+		<attribute name="module.dir" />
+		<attribute name="test.type" />
 
 		<sequential>
 			<if>
-				<os family="unix" />
+				<equals arg1="${junit.code.coverage}" arg2="true" />
 				<then>
-					<property name="gradlew.suffix" value="" />
+					<delete file="@{module.dir}/test-coverage/cobertura.ser" />
 
-					<chmod file="${sdk.dir}/tools/gradle/gradlew${gradlew.suffix}" perm="a+x" />
+					<cobertura-instrument
+						datafile="@{module.dir}/test-coverage/@{test.type}/cobertura.ser"
+						todir="@{module.dir}/test-coverage/@{test.type}"
+					>
+						<ignore regex="org.apache.log4j.*" />
+
+						<fileset dir="@{module.dir}/classes" erroronmissingdir="false">
+							<include name="**/*.class" />
+						</fileset>
+						<fileset dir="@{module.dir}/docroot/WEB-INF/classes" erroronmissingdir="false">
+							<include name="**/*.class" />
+						</fileset>
+					</cobertura-instrument>
 				</then>
-				<else>
-					<property name="gradlew.suffix" value=".bat" />
-				</else>
 			</if>
-
-			<exec executable="${sdk.dir}/tools/gradle/gradlew${gradlew.suffix}" failonerror="@{failonerror}">
-				<arg value="-PpluginsExcludes=${plugins.excludes}" />
-				<arg value="-PpluginsIncludes=${plugins.includes}" />
-				<args />
-				<arg value="@{task}" />
-			</exec>
 		</sequential>
 	</macrodef>
 
@@ -2161,34 +2160,6 @@ Please find a solution that does not require portal-impl.jar.
 		</sequential>
 	</macrodef>
 
-	<macrodef name="instrument-code">
-		<attribute name="module.dir" />
-		<attribute name="test.type" />
-
-		<sequential>
-			<if>
-				<equals arg1="${junit.code.coverage}" arg2="true" />
-				<then>
-					<delete file="@{module.dir}/test-coverage/cobertura.ser" />
-
-					<cobertura-instrument
-						datafile="@{module.dir}/test-coverage/@{test.type}/cobertura.ser"
-						todir="@{module.dir}/test-coverage/@{test.type}"
-					>
-						<ignore regex="org.apache.log4j.*" />
-
-						<fileset dir="@{module.dir}/classes" erroronmissingdir="false">
-							<include name="**/*.class" />
-						</fileset>
-						<fileset dir="@{module.dir}/docroot/WEB-INF/classes" erroronmissingdir="false">
-							<include name="**/*.class" />
-						</fileset>
-					</cobertura-instrument>
-				</then>
-			</if>
-		</sequential>
-	</macrodef>
-
 	<macrodef name="javadoc-macro">
 		<attribute name="module.dir" />
 
@@ -2525,16 +2496,6 @@ Please find a solution that does not require portal-impl.jar.
 					</cobertura-report>
 				</then>
 			</if>
-		</sequential>
-	</macrodef>
-
-	<macrodef name="reset-gradle">
-		<attribute name="module.dir" />
-
-		<sequential>
-			<delete file="@{module.dir}/build.gradle" />
-
-			<touch file="@{module.dir}/build.gradle" />
 		</sequential>
 	</macrodef>
 
@@ -2947,8 +2908,8 @@ Please find a solution that does not require portal-impl.jar.
 			</if>
 
 			<var name="frontend.theme.web.file" unset="true" />
-			<var name="frontend.theme.web.jar.path" unset="true"/>
-			<var name="theme.tmp.dir" unset="true"/>
+			<var name="frontend.theme.web.jar.path" unset="true" />
+			<var name="theme.tmp.dir" unset="true" />
 		</sequential>
 	</macrodef>
 
@@ -3145,7 +3106,7 @@ for (String path : paths) {
 										includes="WEB-INF/liferay-hook.xml.processed"
 									/>
 									<mappedresources>
-										<fileset 
+										<fileset
 											dir="@{module.dir}/docroot"
 											includes="**/.sass-cache/*.css"
 										/>
@@ -3223,7 +3184,7 @@ for (String path : paths) {
 							includes="WEB-INF/liferay-hook.xml.processed"
 						/>
 						<mappedresources>
-							<fileset 
+							<fileset
 								dir="${docroot.dir}"
 								includes="**/.sass-cache/*.css"
 							/>
@@ -3245,7 +3206,7 @@ for (String path : paths) {
 							includes="WEB-INF/liferay-hook.xml.processed"
 						/>
 						<mappedresources>
-							<fileset 
+							<fileset
 								dir="${docroot.dir}"
 								includes="**/.sass-cache/*.css"
 							/>
@@ -3488,6 +3449,7 @@ for (String path : paths) {
 			newenvironment="true"
 		>
 			<jvmarg value="-Xmx512m" />
+			<arg value="javadoc.generate.xml=${generate.xml}" />
 			<arg value="javadoc.init=${init}" />
 			<arg value="javadoc.input.dir=${input.dir}" />
 			<arg value="javadoc.limit=${limit}" />
@@ -3529,10 +3491,6 @@ for (String path : paths) {
 		</java>
 
 		<delete file="ServiceBuilder.temp" />
-	</target>
-
-	<target name="init-gradle">
-		<gradle-execute task="initGradle" />
 	</target>
 
 	<target name="jar">
@@ -3670,33 +3628,6 @@ for (String path : paths) {
 		<loop-macrodef-or-target
 			module.dirs="${plugins.includes.path}"
 			target.name="release"
-		/>
-	</target>
-
-	<target name="reset-gradle">
-		<path id="reset.gradle.path">
-			<dirset dir="${basedir}" excludes="tools/**" includes="**/docroot" />
-			<dirset dir="${basedir}" excludes="**/docroot/WEB-INF/src" includes="**/src" />
-		</path>
-
-		<pathconvert
-			pathsep=","
-			property="reset.gradle.path"
-			refid="reset.gradle.path"
-			targetos="unix"
-		/>
-
-		<propertyregex
-			input="${reset.gradle.path}"
-			override="true"
-			property="reset.gradle.path"
-			regexp="[\\/](?:docroot|src)(,|$)"
-			replace="\1"
-		/>
-
-		<loop-macrodef-or-target
-			module.dirs="${reset.gradle.path}"
-			target.name="reset-gradle"
 		/>
 	</target>
 

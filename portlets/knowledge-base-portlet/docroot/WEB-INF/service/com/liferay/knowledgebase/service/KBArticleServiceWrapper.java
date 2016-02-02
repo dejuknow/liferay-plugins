@@ -135,7 +135,7 @@ public class KBArticleServiceWrapper implements KBArticleService,
 	/**
 	* @deprecated As of 7.0.0, replaced by {@link
 	#getKBArticleAndAllDescendantKBArticles(long, long, int,
-	com.liferay.portal.kernel.util.OrderByComparator)}
+	OrderByComparator)}
 	*/
 	@Deprecated
 	@Override
@@ -258,7 +258,7 @@ public class KBArticleServiceWrapper implements KBArticleService,
 	/**
 	* @deprecated As of 7.0.0, replaced by {@link #getKBArticles(long, long,
 	int, int, int,
-	com.liferay.portal.kernel.util.OrderByComparator)}
+	OrderByComparator)}
 	*/
 	@Deprecated
 	@Override
@@ -359,22 +359,6 @@ public class KBArticleServiceWrapper implements KBArticleService,
 		throws com.liferay.portal.kernel.exception.PortalException {
 		_kbArticleService.updateKBArticlesPriorities(groupId,
 			resourcePrimKeyToPriorityMap);
-	}
-
-	/**
-	 * @deprecated As of 6.1.0, replaced by {@link #getWrappedService}
-	 */
-	@Deprecated
-	public KBArticleService getWrappedKBArticleService() {
-		return _kbArticleService;
-	}
-
-	/**
-	 * @deprecated As of 6.1.0, replaced by {@link #setWrappedService}
-	 */
-	@Deprecated
-	public void setWrappedKBArticleService(KBArticleService kbArticleService) {
-		_kbArticleService = kbArticleService;
 	}
 
 	@Override

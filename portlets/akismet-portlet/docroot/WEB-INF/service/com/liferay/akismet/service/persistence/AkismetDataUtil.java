@@ -24,6 +24,7 @@ import com.liferay.portal.kernel.util.OrderByComparator;
 import com.liferay.portal.kernel.util.ReferenceRegistry;
 import com.liferay.portal.service.ServiceContext;
 
+import java.util.Date;
 import java.util.List;
 
 /**
@@ -115,8 +116,7 @@ public class AkismetDataUtil {
 	* @param modifiedDate the modified date
 	* @return the matching akismet datas
 	*/
-	public static List<AkismetData> findByLtModifiedDate(
-		java.util.Date modifiedDate) {
+	public static List<AkismetData> findByLtModifiedDate(Date modifiedDate) {
 		return getPersistence().findByLtModifiedDate(modifiedDate);
 	}
 
@@ -132,8 +132,8 @@ public class AkismetDataUtil {
 	* @param end the upper bound of the range of akismet datas (not inclusive)
 	* @return the range of matching akismet datas
 	*/
-	public static List<AkismetData> findByLtModifiedDate(
-		java.util.Date modifiedDate, int start, int end) {
+	public static List<AkismetData> findByLtModifiedDate(Date modifiedDate,
+		int start, int end) {
 		return getPersistence().findByLtModifiedDate(modifiedDate, start, end);
 	}
 
@@ -150,9 +150,8 @@ public class AkismetDataUtil {
 	* @param orderByComparator the comparator to order the results by (optionally <code>null</code>)
 	* @return the ordered range of matching akismet datas
 	*/
-	public static List<AkismetData> findByLtModifiedDate(
-		java.util.Date modifiedDate, int start, int end,
-		OrderByComparator<AkismetData> orderByComparator) {
+	public static List<AkismetData> findByLtModifiedDate(Date modifiedDate,
+		int start, int end, OrderByComparator<AkismetData> orderByComparator) {
 		return getPersistence()
 				   .findByLtModifiedDate(modifiedDate, start, end,
 			orderByComparator);
@@ -172,9 +171,8 @@ public class AkismetDataUtil {
 	* @param retrieveFromCache whether to retrieve from the finder cache
 	* @return the ordered range of matching akismet datas
 	*/
-	public static List<AkismetData> findByLtModifiedDate(
-		java.util.Date modifiedDate, int start, int end,
-		OrderByComparator<AkismetData> orderByComparator,
+	public static List<AkismetData> findByLtModifiedDate(Date modifiedDate,
+		int start, int end, OrderByComparator<AkismetData> orderByComparator,
 		boolean retrieveFromCache) {
 		return getPersistence()
 				   .findByLtModifiedDate(modifiedDate, start, end,
@@ -189,10 +187,9 @@ public class AkismetDataUtil {
 	* @return the first matching akismet data
 	* @throws NoSuchDataException if a matching akismet data could not be found
 	*/
-	public static AkismetData findByLtModifiedDate_First(
-		java.util.Date modifiedDate,
+	public static AkismetData findByLtModifiedDate_First(Date modifiedDate,
 		OrderByComparator<AkismetData> orderByComparator)
-		throws com.liferay.akismet.NoSuchDataException {
+		throws com.liferay.akismet.exception.NoSuchDataException {
 		return getPersistence()
 				   .findByLtModifiedDate_First(modifiedDate, orderByComparator);
 	}
@@ -204,8 +201,7 @@ public class AkismetDataUtil {
 	* @param orderByComparator the comparator to order the set by (optionally <code>null</code>)
 	* @return the first matching akismet data, or <code>null</code> if a matching akismet data could not be found
 	*/
-	public static AkismetData fetchByLtModifiedDate_First(
-		java.util.Date modifiedDate,
+	public static AkismetData fetchByLtModifiedDate_First(Date modifiedDate,
 		OrderByComparator<AkismetData> orderByComparator) {
 		return getPersistence()
 				   .fetchByLtModifiedDate_First(modifiedDate, orderByComparator);
@@ -219,10 +215,9 @@ public class AkismetDataUtil {
 	* @return the last matching akismet data
 	* @throws NoSuchDataException if a matching akismet data could not be found
 	*/
-	public static AkismetData findByLtModifiedDate_Last(
-		java.util.Date modifiedDate,
+	public static AkismetData findByLtModifiedDate_Last(Date modifiedDate,
 		OrderByComparator<AkismetData> orderByComparator)
-		throws com.liferay.akismet.NoSuchDataException {
+		throws com.liferay.akismet.exception.NoSuchDataException {
 		return getPersistence()
 				   .findByLtModifiedDate_Last(modifiedDate, orderByComparator);
 	}
@@ -234,8 +229,7 @@ public class AkismetDataUtil {
 	* @param orderByComparator the comparator to order the set by (optionally <code>null</code>)
 	* @return the last matching akismet data, or <code>null</code> if a matching akismet data could not be found
 	*/
-	public static AkismetData fetchByLtModifiedDate_Last(
-		java.util.Date modifiedDate,
+	public static AkismetData fetchByLtModifiedDate_Last(Date modifiedDate,
 		OrderByComparator<AkismetData> orderByComparator) {
 		return getPersistence()
 				   .fetchByLtModifiedDate_Last(modifiedDate, orderByComparator);
@@ -251,9 +245,9 @@ public class AkismetDataUtil {
 	* @throws NoSuchDataException if a akismet data with the primary key could not be found
 	*/
 	public static AkismetData[] findByLtModifiedDate_PrevAndNext(
-		long akismetDataId, java.util.Date modifiedDate,
+		long akismetDataId, Date modifiedDate,
 		OrderByComparator<AkismetData> orderByComparator)
-		throws com.liferay.akismet.NoSuchDataException {
+		throws com.liferay.akismet.exception.NoSuchDataException {
 		return getPersistence()
 				   .findByLtModifiedDate_PrevAndNext(akismetDataId,
 			modifiedDate, orderByComparator);
@@ -264,7 +258,7 @@ public class AkismetDataUtil {
 	*
 	* @param modifiedDate the modified date
 	*/
-	public static void removeByLtModifiedDate(java.util.Date modifiedDate) {
+	public static void removeByLtModifiedDate(Date modifiedDate) {
 		getPersistence().removeByLtModifiedDate(modifiedDate);
 	}
 
@@ -274,7 +268,7 @@ public class AkismetDataUtil {
 	* @param modifiedDate the modified date
 	* @return the number of matching akismet datas
 	*/
-	public static int countByLtModifiedDate(java.util.Date modifiedDate) {
+	public static int countByLtModifiedDate(Date modifiedDate) {
 		return getPersistence().countByLtModifiedDate(modifiedDate);
 	}
 
@@ -287,7 +281,7 @@ public class AkismetDataUtil {
 	* @throws NoSuchDataException if a matching akismet data could not be found
 	*/
 	public static AkismetData findByC_C(long classNameId, long classPK)
-		throws com.liferay.akismet.NoSuchDataException {
+		throws com.liferay.akismet.exception.NoSuchDataException {
 		return getPersistence().findByC_C(classNameId, classPK);
 	}
 
@@ -324,7 +318,7 @@ public class AkismetDataUtil {
 	* @return the akismet data that was removed
 	*/
 	public static AkismetData removeByC_C(long classNameId, long classPK)
-		throws com.liferay.akismet.NoSuchDataException {
+		throws com.liferay.akismet.exception.NoSuchDataException {
 		return getPersistence().removeByC_C(classNameId, classPK);
 	}
 
@@ -375,7 +369,7 @@ public class AkismetDataUtil {
 	* @throws NoSuchDataException if a akismet data with the primary key could not be found
 	*/
 	public static AkismetData remove(long akismetDataId)
-		throws com.liferay.akismet.NoSuchDataException {
+		throws com.liferay.akismet.exception.NoSuchDataException {
 		return getPersistence().remove(akismetDataId);
 	}
 
@@ -391,7 +385,7 @@ public class AkismetDataUtil {
 	* @throws NoSuchDataException if a akismet data with the primary key could not be found
 	*/
 	public static AkismetData findByPrimaryKey(long akismetDataId)
-		throws com.liferay.akismet.NoSuchDataException {
+		throws com.liferay.akismet.exception.NoSuchDataException {
 		return getPersistence().findByPrimaryKey(akismetDataId);
 	}
 
@@ -501,13 +495,6 @@ public class AkismetDataUtil {
 		}
 
 		return _persistence;
-	}
-
-	/**
-	 * @deprecated As of 6.2.0
-	 */
-	@Deprecated
-	public void setPersistence(AkismetDataPersistence persistence) {
 	}
 
 	private static AkismetDataPersistence _persistence;

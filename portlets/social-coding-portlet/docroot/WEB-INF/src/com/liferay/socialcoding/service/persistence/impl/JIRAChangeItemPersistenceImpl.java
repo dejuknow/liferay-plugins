@@ -34,7 +34,7 @@ import com.liferay.portal.kernel.util.StringPool;
 import com.liferay.portal.model.CacheModel;
 import com.liferay.portal.service.persistence.impl.BasePersistenceImpl;
 
-import com.liferay.socialcoding.NoSuchJIRAChangeItemException;
+import com.liferay.socialcoding.exception.NoSuchJIRAChangeItemException;
 import com.liferay.socialcoding.model.JIRAChangeItem;
 import com.liferay.socialcoding.model.impl.JIRAChangeItemImpl;
 import com.liferay.socialcoding.model.impl.JIRAChangeItemModelImpl;
@@ -220,7 +220,7 @@ public class JIRAChangeItemPersistenceImpl extends BasePersistenceImpl<JIRAChang
 
 			if (orderByComparator != null) {
 				query = new StringBundler(3 +
-						(orderByComparator.getOrderByFields().length * 3));
+						(orderByComparator.getOrderByFields().length * 2));
 			}
 			else {
 				query = new StringBundler(3);
@@ -440,8 +440,9 @@ public class JIRAChangeItemPersistenceImpl extends BasePersistenceImpl<JIRAChang
 		StringBundler query = null;
 
 		if (orderByComparator != null) {
-			query = new StringBundler(6 +
-					(orderByComparator.getOrderByFields().length * 6));
+			query = new StringBundler(4 +
+					(orderByComparator.getOrderByConditionFields().length * 3) +
+					(orderByComparator.getOrderByFields().length * 3));
 		}
 		else {
 			query = new StringBundler(3);
@@ -876,7 +877,7 @@ public class JIRAChangeItemPersistenceImpl extends BasePersistenceImpl<JIRAChang
 	}
 
 	/**
-	 * Returns the j i r a change item with the primary key or throws a {@link com.liferay.portal.NoSuchModelException} if it could not be found.
+	 * Returns the j i r a change item with the primary key or throws a {@link com.liferay.portal.exception.NoSuchModelException} if it could not be found.
 	 *
 	 * @param primaryKey the primary key of the j i r a change item
 	 * @return the j i r a change item
@@ -1151,7 +1152,7 @@ public class JIRAChangeItemPersistenceImpl extends BasePersistenceImpl<JIRAChang
 
 			if (orderByComparator != null) {
 				query = new StringBundler(2 +
-						(orderByComparator.getOrderByFields().length * 3));
+						(orderByComparator.getOrderByFields().length * 2));
 
 				query.append(_SQL_SELECT_JIRACHANGEITEM);
 
