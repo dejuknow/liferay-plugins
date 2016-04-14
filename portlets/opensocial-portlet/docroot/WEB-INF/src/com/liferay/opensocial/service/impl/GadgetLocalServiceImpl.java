@@ -99,6 +99,11 @@ public class GadgetLocalServiceImpl extends GadgetLocalServiceBaseImpl {
 
 		gadgetPersistence.update(gadget);
 
+		resourceLocalService.addResources(
+			companyId, 0, 0, Gadget.class.getName(), gadgetId, false,
+			serviceContext.isAddGroupPermissions(),
+			serviceContext.isAddGuestPermissions());
+
 		gadgetLocalService.initGadget(
 			gadget.getUuid(), companyId, gadgetId, gadget.getName(),
 			gadget.getPortletCategoryNames());

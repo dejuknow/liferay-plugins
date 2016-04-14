@@ -190,7 +190,7 @@
 		</antcall>
 
 		<replace file="tmp/WEB-INF/classes/config/oauth.json">
-			<replacefilter token="http://localhost:8080/" value="http://localhost:8080/opensocial-portlet/" />
+			<replacefilter token="http://localhost:8080/" value="http://localhost:8080/o/opensocial-portlet/" />
 		</replace>
 
 		<!-- Configure shindig.properties -->
@@ -247,6 +247,15 @@
 
 		<delete file="tmp/WEB-INF/lib/shindig-social-api-2.5.2.jar" />
 
+
+
+
+		<delete file="tmp/WEB-INF/lib/xercesImpl-2.11.0.jar" />
+		<delete file="tmp/WEB-INF/lib/xml-apis-1.4.01.jar" />
+
+
+
+
 		<jar
 			basedir="${tstamp.value}"
 			destfile="tmp/WEB-INF/lib/shindig-social-api-2.5.2.jar"
@@ -279,18 +288,18 @@
 		<delete dir="${tstamp.value}" />
 
 		<!-- OpenAjax Hub -->
-<!--
+
 		<if>
 			<not>
-				<available file="tmp/gadget/js/OpenAjax_Hub_2.0.5_r1293" />
+				<available file="tmp/gadget/js/OpenAjax_Hub_2.0.7" />
 			</not>
 			<then>
 				<unzip
 					dest="tmp/gadget/js"
-					src="OpenAjax_Hub_2.0.5_r1293.zip"
+					src="OpenAjax_Hub_2.0.7.zip"
 				/>
 			</then>
-		</if> -->
+		</if>
 
 		<!-- LPS-15003 -->
 

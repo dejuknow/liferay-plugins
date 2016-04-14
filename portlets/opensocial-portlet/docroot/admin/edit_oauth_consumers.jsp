@@ -123,7 +123,7 @@ int oAuthServiceCount = 0;
 		submitForm(document.<portlet:namespace />fm);
 	}
 
-	Liferay.Util.focusFormField(document.<portlet:namespace />fm.<portlet:namespace />name);
+	<!-- Liferay.Util.focusFormField(document.<portlet:namespace />fm.<portlet:namespace />name); -->
 </aui:script>
 
 <aui:script use="aui-base">

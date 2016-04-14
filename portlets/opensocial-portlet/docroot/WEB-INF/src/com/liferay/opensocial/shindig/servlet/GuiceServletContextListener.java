@@ -16,19 +16,8 @@ package com.liferay.opensocial.shindig.servlet;
 
 import com.liferay.opensocial.service.ClpSerializer;
 import com.liferay.opensocial.service.GadgetLocalServiceUtil;
-import com.liferay.opensocial.shindig.util.ShindigUtil;
-import com.liferay.portal.kernel.log.Log;
-import com.liferay.portal.kernel.log.LogFactoryUtil;
 import com.liferay.portal.kernel.portlet.PortletClassLoaderUtil;
 import com.liferay.portal.kernel.util.BasePortalLifecycle;
-import com.liferay.portal.model.Company;
-import com.liferay.portal.model.Layout;
-import com.liferay.portal.model.User;
-import com.liferay.portal.service.CompanyLocalServiceUtil;
-import com.liferay.portlet.expando.NoSuchTableException;
-import com.liferay.portlet.expando.service.ExpandoTableLocalServiceUtil;
-
-import java.util.List;
 
 import javax.servlet.ServletContextEvent;
 import javax.servlet.ServletContextListener;
@@ -63,21 +52,21 @@ public class GuiceServletContextListener
 
 	@Override
 	protected void doPortalInit() {
-		Thread currentThread = Thread.currentThread();
-
-		ClassLoader classLoader = currentThread.getContextClassLoader();
-
-		try {
-			currentThread.setContextClassLoader(
-				PortletClassLoaderUtil.getClassLoader(
-					ClpSerializer.getServletContextName()));
+//		Thread currentThread = Thread.currentThread();
+//
+//		ClassLoader classLoader = currentThread.getContextClassLoader();
+//
+//		try {
+//			currentThread.setContextClassLoader(
+//				PortletClassLoaderUtil.getClassLoader(
+//					ClpSerializer.getServletContextName()));
 
 			_guiceServletContextListener.contextInitialized(
 				_initializedServletContextEvent);
-		}
-		finally {
-			currentThread.setContextClassLoader(classLoader);
-		}
+//		}
+//		finally {
+//			currentThread.setContextClassLoader(classLoader);
+//		}
 	}
 
 	private ServletContextEvent _destroyedServletContextEvent;
